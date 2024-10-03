@@ -12,7 +12,10 @@ export default function Index() {
       }}
     >
     <Link href={'(tabs)/home'}>
-      <Text>Welcome</Text>
+      <Text style={{
+        fontFamily:'outfit-bold',
+        fontSize:40
+      }}>Welcome</Text>
       {/* <Image source={require('../assets/images/logo.jpg')} /> */}
     </Link>
 
