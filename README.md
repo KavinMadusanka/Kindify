@@ -15,7 +15,7 @@ Kindify is a mobile application designed to connect volunteers with community se
 ## Tech Stack
 
 - **Frontend: React Native
-- - **Backend: Node.js with Express
+- **Backend: Node.js with Express
 - **Database: MongoDB
 - **Authentication: JWT (JSON Web Tokens)
 - **Push Notifications: Firebase Cloud Messaging (FCM)
