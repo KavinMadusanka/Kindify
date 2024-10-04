@@ -57,7 +57,11 @@ export default function RootLayout() {
         options={{
           headerShown:false
         }}/>
-        <Stack.Screen name="login/signup" 
+        <Stack.Screen name="login/signupO" 
+        options={{
+          headerShown:false
+        }}/>
+        <Stack.Screen name="login/signupV" 
         options={{
           headerShown:false
         }}/>
