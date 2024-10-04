@@ -28,6 +28,7 @@ export default function select() {
             <Text style={{
                 fontSize:20,
                 paddingLeft:15,
+                color:"#16423C"
                 }}>Registered As :</Text>
         </View>
         <View style={{
@@ -36,14 +37,17 @@ export default function select() {
             }}>
             <Pressable style={{
                 padding:14,
-                backgroundColor:'gray',
+                backgroundColor:'#E9EFEC',
                 width:'90%',
                 borderRadius:14
             }}>
-                <Text style={{
-                    fontSize:20,
-                    textAlign:'center',
-                }}>Volunteer</Text>
+                <Link href="/login/signupV">
+                    <Text style={{
+                        fontSize:20,
+                        textAlign:'center',
+                        color:"#16423C"
+                    }}>Volunteer</Text>
+                </Link>
             </Pressable>
         </View>
         <View style={{
@@ -52,14 +56,17 @@ export default function select() {
             }}>
             <Pressable style={{
                 padding:14,
-                backgroundColor:'gray',
+                backgroundColor:'#E9EFEC',
                 width:'90%',
                 borderRadius:14
             }}>
-                <Text style={{
-                    fontSize:20,
-                    textAlign:'center',
-                }}>Organization</Text>
+                <Link href="/login/signupO">
+                    <Text style={{
+                        fontSize:20,
+                        textAlign:'center',
+                        color:"#16423C"
+                    }}>Organization</Text>
+                </Link>
             </Pressable>
         </View>
 
@@ -69,7 +76,7 @@ export default function select() {
                 marginTop:100,
                 }}>
             <Link href="/login">
-                <Text style={{fontFamily:'outfit-bold'}}>Already Have an account ? Click Here.</Text>
+                <Text style={{fontFamily:'outfit-bold',color:"#16423C"}}>Already Have an account ? Click Here.</Text>
             </Link>
         </View>
     </View>
