@@ -24,7 +24,8 @@ export default function Index() {
     <Link href={'(tabs)/home'}>
       <Text style={{
         fontFamily:'outfit-bold',
-        fontSize:40
+        fontSize:40,
+        color:"#16423C"
       }}>Welcome</Text>
       {/* <Image source={require('../assets/images/logo.jpg')} /> */}
     </Link>
