@@ -10,6 +10,9 @@ export default function Index() {
   if (isSignedIn) {
     return <Redirect href={'(tabs)/home'} />
   }
+  if (!isSignedIn) {
+    return <Redirect href={'login/index'} />
+  }
 
 
   return (
