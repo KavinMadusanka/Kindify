@@ -1,18 +1,30 @@
 import { Link } from "expo-router";
 import { Text, View ,Image, Pressable} from "react-native";
 import { useAuth } from '@clerk/clerk-expo'
-import { Redirect, Stack } from 'expo-router'
+import { Redirect, Stack, useRouter  } from 'expo-router'
+import { useEffect } from 'react';
 
 export default function Index() {
 
-  const { isSignedIn } = useAuth()
+  const { isSignedIn } = useAuth();
+  const router = useRouter();
 
-  if (isSignedIn) {
-    return <Redirect href={'(tabs)/home'} />
-  }
-  if (!isSignedIn) {
-    return <Redirect href={'login/index'} />
-  }
+  useEffect(() => {
+    const timer = setTimeout(() => {
+
+        if (isSignedIn) {
+          router.push('(tabs)/home');
+        }
+        if (!isSignedIn) {
+          router.push('/login');
+        }
+      }, 2000);
+      return () => clearTimeout(timer); // Cleanup the timer on component unmount
+    }, [isSignedIn, router]);
+
+    // useEffect(() => {
+    //   setTimeout();
+    // },[isSignedIn, router])
 
 
   return (
