@@ -1,9 +1,10 @@
 import { View, Text, Button } from 'react-native'
 import React from 'react'
-import { useAuth } from '@clerk/clerk-expo';
+import { useAuth, useUser } from '@clerk/clerk-expo';
 
 export default function home() {
   const { signOut } = useAuth();  // Get the signOut method from Clerk
+  const { user } = useUser();
 
   const handleLogout = async () => {
     try {
@@ -17,6 +18,7 @@ export default function home() {
       <Text>home</Text>
         <View>
           <Button title="Log Out" onPress={handleLogout} />
+          {/* <Text>{user?.firstname}</Text>  */}
         </View>
     </View>
     
