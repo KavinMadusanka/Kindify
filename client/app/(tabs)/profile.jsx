@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, ScrollView } from 'react-native';
 import { Link } from 'expo-router';
+import { useUser } from '@clerk/clerk-expo'; // Import useUser hook
 
 // Import images
 const Customer = require('../../assets/images/Customer.png');
@@ -10,6 +11,9 @@ const Bookmark = require('../../assets/images/Bookmark.png');
 const Notification = require('../../assets/images/Notification.png');
 
 const Profile = () => {
+  // Get the user data from Clerk
+  const { user } = useUser();
+
   // Menu array for navigation options
   const Menu = [
     {
@@ -46,12 +50,19 @@ const Profile = () => {
 
   return (
     <ScrollView style={styles.container}>
+      {/* Profile Image and Name */}
       <View style={styles.profileContainer}>
         <Image
           style={styles.profileImage}
-          source={{ uri: 'https://your-image-url' }} // Replace with your image URL or asset
+          source={{ uri: user?.profileImageUrl || 'https://your-image-url' }} // User's profile image or fallback
+          onError={() => console.log('Error loading image')} // Handle image load error
         />
-        <Text style={styles.profileName}>Your Name</Text>
+        <Text style={styles.profileName}>
+          {user ? `${user.firstName}` : 'Your Name'}  {/* Only first name */}
+        </Text>
+        <Text style={styles.profileEmail}>
+          {user?.primaryEmailAddress?.emailAddress || 'Email not available'}
+        </Text>
       </View>
 
       {/* Map through the menu array to create the cards dynamically */}
@@ -89,13 +100,18 @@ const styles = StyleSheet.create({
     marginTop: 15,
     color: '#000', // Black text for profile name
   },
+  profileEmail: {
+    fontSize: 16,
+    marginTop: 5,
+    color: '#666', // Grey text for email
+  },
   card: {
     flexDirection: 'row', // Ensures image and text are side by side
     backgroundColor: '#F3F7F6', // Light background color for the card
     borderRadius: 20,
-    paddingTop:5,
-    paddingBottom:25,
-    paddingLeft:15,
+    paddingTop: 5,
+    paddingBottom: 25,
+    paddingLeft: 15,
     marginBottom: 25,
     alignItems: 'center',
     shadowColor: '#000',
@@ -111,7 +127,7 @@ const styles = StyleSheet.create({
   cardText: {
     fontSize: 17,
     color: '#000', // Black text
-    marginLeft:20,
+    marginLeft: 20,
   },
 });
 
