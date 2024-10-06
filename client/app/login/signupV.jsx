@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, Image, TextInput, Button, ScrollView, KeyboardAvoidingView, Platform } from 'react-native'
+import { View, Text, Image, TextInput, Button, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native'
 import { useSignUp } from '@clerk/clerk-expo'
 import { Link, useRouter } from 'expo-router'
 
@@ -17,7 +17,8 @@ export default function signupV() {
   const [pendingVerification, setPendingVerification] = React.useState(false)
   const [code, setCode] = React.useState('')
   const [message, setMessage] = React.useState("")
-  const [errorMessage, setErrorMessage] = React.useState("");;
+  const [errorMessage, setErrorMessage] = React.useState("");
+  const [errorfirstName, setErrorfirstName] = React.useState("");
   const [role, setRole] = React.useState(0)
 
   const handleConfirmPassChange = (passw) => {
@@ -30,11 +31,20 @@ export default function signupV() {
   };
 
   const onSignUpPress = async () => {
+    console.log(emailAddress);
+    console.log(password);
+    console.log(firstName);
+    console.log(Address);
+    console.log(Contact);
+    console.log(role);
     if (!isLoaded) {
       return
     }
     if (!emailAddress) {
       return setErrorMessage("Email is required.");
+    }
+    if (!firstName) {
+      return setErrorfirstName("Name is required.");
     }
 
     try {
@@ -139,6 +149,9 @@ export default function signupV() {
                       />
               </View>
             </View>
+            {errorfirstName ? (
+              <Text style={{ color: "red", marginTop: 5, paddingLeft:30 }}>{errorfirstName}</Text>
+            ) : null}
             <View style={{
               marginTop:5,
               paddingLeft:15
@@ -222,6 +235,7 @@ export default function signupV() {
                         autoCapitalize="none"
                         value={Contact}
                         placeholder="Contact No..."
+                        keyboardType='numeric-pad'
                         onChangeText={(contact) => setContact(contact)}
                         style={{color:"#16423C"}}
                         placeholderTextColor="#16423C"
@@ -291,15 +305,16 @@ export default function signupV() {
               </Text>
             ) : null}
             <View style={{alignItems:"center"}}>
-              <View style={{
-                    padding:4,
+              <TouchableOpacity style={{
+                    padding:14,
                     marginTop:30,
                     backgroundColor:'#E9EFEC',
                     width:'40%',
                     color:"#16423C",
-                    borderRadius:14}}>
-                <Button title="Sign Up" onPress={onSignUpPress} color="#16423C"/>
-                </View>
+                    borderRadius:14}}
+                    onPress={onSignUpPress}>
+                <Text style={{color:"#16423C", textAlign:"center"}} >Sign Up</Text>
+                </TouchableOpacity>
               </View>
             </>
           // </View>
