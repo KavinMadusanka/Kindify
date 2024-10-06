@@ -1,6 +1,6 @@
 import { View, Text, Image, TextInput, Button, Pressable, ScrollView, KeyboardAvoidingView, Platform  } from 'react-native'
 import { SignedIn, SignedOut, useUser, useAuth, useSignIn  } from '@clerk/clerk-expo';
-import { Link, useRouter  } from 'expo-router'
+import { Link, Redirect, useRouter  } from 'expo-router'
 import React from 'react';
 
 export default function LoginScreen() {
@@ -13,9 +13,9 @@ export default function LoginScreen() {
     const [emailAddress, setEmailAddress] = React.useState('')
     const [password, setPassword] = React.useState('')
 
-    if (isSignedIn) {
-        return <Redirect href={'/'} />
-    }
+    // if (isSignedIn) {
+    //     return <Redirect href={'(tabs)/home'} />
+    // }
 
     const onSignInPress = React.useCallback(async () => {
         if (!isLoaded) {
@@ -30,7 +30,7 @@ export default function LoginScreen() {
     
           if (signInAttempt.status === 'complete') {
             await setActive({ session: signInAttempt.createdSessionId })
-            router.replace('(tabs)/home')
+            router.replace('/(tabs)/home')
           } else {
             // See https://clerk.com/docs/custom-flows/error-handling
             // for more info on error handling
