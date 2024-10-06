@@ -9,7 +9,7 @@ export default function signupV() {
   const router = useRouter()
 
   const [emailAddress, setEmailAddress] = React.useState('')
-  const [Name, setName] = React.useState('')
+  const [firstName, setFirstName] = React.useState('')
   const [Address, setAddress] = React.useState('')
   const [Contact, setContact] = React.useState('')
   const [ConfirmPass, setConfirmPass] = React.useState('')
@@ -18,6 +18,7 @@ export default function signupV() {
   const [code, setCode] = React.useState('')
   const [message, setMessage] = React.useState("")
   const [errorMessage, setErrorMessage] = React.useState("");;
+  const [role, setRole] = React.useState(0)
 
   const handleConfirmPassChange = (passw) => {
     setConfirmPass(passw);
@@ -40,9 +41,10 @@ export default function signupV() {
       await signUp.create({
         emailAddress,
         password,
-        Name,
+        firstName,
         Address,
         Contact,
+        role,
       })
 
     await signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
@@ -67,7 +69,7 @@ export default function signupV() {
 
       if (completeSignUp.status === 'complete') {
         await setActive({ session: completeSignUp.createdSessionId })
-        router.replace('/(tabs)/home')
+        router.replace('(tabs)/home')
       } else {
         console.error(JSON.stringify(completeSignUp, null, 2))
       }
@@ -129,9 +131,9 @@ export default function signupV() {
                     borderRadius:14}}>
                       <TextInput
                         autoCapitalize="none"
-                        value={Name}
+                        value={firstName}
                         placeholder="Name..."
-                        onChangeText={(name) => setName(name)}
+                        onChangeText={(firstName) => setFirstName(firstName)}
                         style={{color:"#16423C"}}
                         placeholderTextColor="#16423C"
                       />
