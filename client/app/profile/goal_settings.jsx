@@ -1,10 +1,10 @@
 import { View, Text, StyleSheet } from 'react-native';
 import React from 'react';
 
-export default function notification() {  // It's a good practice to use PascalCase for component names
+export default function GoalSettings() {
   return (
     <View style={styles.container}>
-      <Text>Notifications</Text>
+      <Text>Goal</Text>
     </View>
   );
 }
