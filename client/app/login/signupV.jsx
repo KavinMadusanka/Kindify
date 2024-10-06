@@ -1,7 +1,9 @@
 import React from 'react'
-import { View, Text, Image, TextInput, Button, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native'
+import { View, Text, Image, TextInput, Button, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, Alert } from 'react-native'
 import { useSignUp } from '@clerk/clerk-expo'
 import { Link, useRouter } from 'expo-router'
+import { db } from '../../config/FirebaseConfig';
+import { collection, addDoc } from 'firebase/firestore';
 
 export default function signupV() {
 
@@ -40,11 +42,11 @@ export default function signupV() {
     if (!isLoaded) {
       return
     }
-    if (!emailAddress) {
-      return setErrorMessage("Email is required.");
-    }
     if (!firstName) {
       return setErrorfirstName("Name is required.");
+    }
+    if (!emailAddress) {
+      return setErrorMessage("Email is required.");
     }
 
     try {
@@ -59,11 +61,31 @@ export default function signupV() {
 
     await signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
 
-      setPendingVerification(true)
+      setPendingVerification(true);
+      uploadFormData();
     } catch (err) {
       // See https://clerk.com/docs/custom-flows/error-handling
       // for more info on error handling
       console.error(JSON.stringify(err, null, 2))
+    }
+  }
+  
+  const uploadFormData=async()=>{
+    try {
+      const UserData = {
+        firstName,
+        emailAddress,
+        Address,
+        Contact,
+        role
+    };
+
+    const docRef = await addDoc(collection(db, 'users'), UserData);
+    Alert.alert('Registered successful!');
+      
+    } catch (error) {
+      console.error('Error adding document: ', error);
+      Alert.alert('Error Registrating. Please try again.');
     }
   }
 
