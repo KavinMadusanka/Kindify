@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView,
 import RNPickerSelect from 'react-native-picker-select';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker'; // Import Expo Image Picker
+import { db } from '../../config/FirebaseConfig'; // Import your Firebase configuration
+import { collection, addDoc } from 'firebase/firestore'; // Import Firestore functions
 
 // Your icons
 const LogoIcon = require('../../assets/images/Logo.png');
@@ -17,6 +19,8 @@ export default function CreateEventScreen() {
     const [description, setDescription] = useState('');
     const [date, setDate] = useState(new Date());
     const [time, setTime] = useState(new Date());
+    const [location, setLocation] = useState('');
+    const [volunteerHours, setVolunteerHours] = useState('');
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
     const [images, setImages] = useState([]); // State to store selected images
@@ -69,9 +73,37 @@ export default function CreateEventScreen() {
         setImages(updatedImages);
     };
 
+    // Function to publish event details to Firestore
+    const publishEvent = async () => {
+        try {
+            // Validate inputs
+            if (!category || !description || !location || !volunteerHours) {
+                Alert.alert('Please fill all fields.');
+                return;
+            }
+
+            // Prepare data to be saved
+            const eventData = {
+                category,
+                description,
+                date: date.toDateString(),
+                time: time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                location,
+                volunteerHours,
+                images,
+            };
+
+            // Add event to Firestore
+            const docRef = await addDoc(collection(db, 'events'), eventData);
+            Alert.alert('Event published!', `Event ID: ${docRef.id}`);
+        } catch (error) {
+            console.error('Error adding document: ', error);
+            Alert.alert('Error publishing event. Please try again.');
+        }
+    };
+
     return (
         <ScrollView style={styles.container}>
-            {/* Your existing UI components... */}
             {/* Category Dropdown */}
             <View style={styles.inputContainer}>
                 <Image source={LogoIcon} style={styles.icon} />
@@ -144,6 +176,8 @@ export default function CreateEventScreen() {
                 <TextInput
                     style={styles.textInput}
                     placeholder="Location"
+                    value={location}
+                    onChangeText={setLocation}
                 />
             </View>
 
@@ -153,32 +187,34 @@ export default function CreateEventScreen() {
                 <TextInput
                     style={styles.textInput}
                     placeholder="Volunteer Hours"
+                    value={volunteerHours}
+                    onChangeText={setVolunteerHours}
                 />
             </View>
 
             {/* Image Upload */}
             <View style={styles.uploadImageContainer}>
-    <Text style={styles.imageUploadTitle}>Upload Images (Max 4)</Text>
-    <View style={styles.imageRow}>
-        {images.map((image, index) => (
-            <View key={index} style={styles.imageContainer}>
-                <Image source={{ uri: image }} style={styles.imagePreview} />
-                <TouchableOpacity
-                    style={styles.removeButton}
-                    onPress={() => removeImage(index)}
-                >
-                    <Text style={styles.removeButtonText}>X</Text>
+                <Text style={styles.imageUploadTitle}>Upload Images (Max 4)</Text>
+                <View style={styles.imageRow}>
+                    {images.map((image, index) => (
+                        <View key={index} style={styles.imageContainer}>
+                            <Image source={{ uri: image }} style={styles.imagePreview} />
+                            <TouchableOpacity
+                                style={styles.removeButton}
+                                onPress={() => removeImage(index)}
+                            >
+                                <Text style={styles.removeButtonText}>X</Text>
+                            </TouchableOpacity>
+                        </View>
+                    ))}
+                </View>
+                <TouchableOpacity style={styles.imageButton} onPress={pickImage}>
+                    <Text style={styles.imageButtonText}>Add Image</Text>
                 </TouchableOpacity>
             </View>
-        ))}
-    </View>
-    <TouchableOpacity style={styles.imageButton} onPress={pickImage}>
-        <Text style={styles.imageButtonText}>Add Image</Text>
-    </TouchableOpacity>
-</View>
 
             {/* Publish Button */}
-            <TouchableOpacity style={styles.publishButton}>
+            <TouchableOpacity style={styles.publishButton} onPress={publishEvent}>
                 <Text style={styles.publishButtonText}>Publish</Text>
             </TouchableOpacity>
         </ScrollView>
@@ -191,106 +227,80 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#E6F2F0',
     padding: 20,
-},
-inputContainer: {
-    flexDirection: 'row', // Align items in a row
-    alignItems: 'center', // Center vertically
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#fff',
-    borderRadius: 10,
-    marginBottom: 15,
+    borderRadius: 5,
+    marginVertical: 10,
     padding: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 3,
-},
-icon: {
-    width: 24,
-    height: 24,
+  },
+  icon: {
+    width: 30,
+    height: 30,
     marginRight: 10,
-},
-textInput: {
+  },
+  textInput: {
     flex: 1,
-    padding: 10,
-    marginLeft: 10, // Added margin for spacing from the icon
-},
-textInputDropdown: {
-    height: 50,
-    padding: 10,
-    marginLeft: 10, // Added margin for spacing from the icon
-},
-imageUploadTitle: {
+    height: 40,
     fontSize: 16,
-    marginBottom: 10,
-    fontWeight: 'bold', // Added bold font for emphasis
-},
-imageRow: {
+  },
+  textInputDropdown: {
+    height: 40,
+    fontSize: 16,
+    color: 'black',
+  },
+  uploadImageContainer: {
+    marginVertical: 10,
+    backgroundColor: '#fff',
+    borderRadius: 5,
+    padding: 10,
+  },
+  imageRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginBottom: 10, // Added margin to separate from button
-},
-imageContainer: {
+  },
+  imageContainer: {
     position: 'relative',
-    marginRight: 10,
-},
-imagePreview: {
-    width: 80,
-    height: 80,
-    borderRadius: 10,
-},
-    removeButton: {
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        backgroundColor: 'red',
-        borderRadius: 10,
-        padding: 5,
-    },
-    removeButtonText: {
-        color: '#FFFFFF', // Color for the remove button text
-    },
-    uploadImageContainer: {
-      backgroundColor: '#fff',
-      borderRadius: 10,
-      padding: 10,
-      marginBottom: 15,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.2,
-      shadowRadius: 5,
-      elevation: 3,
-      flexDirection: 'column', // Align title and button vertically
-      justifyContent: 'space-between', // Space between the title and button
-      height: 150, // Set height for the box
+    margin: 5,
   },
-  
-  imageRow: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      marginBottom: 10,
-      // Removed margin bottom to have space between the images and the button
+  imagePreview: {
+    width: 100,
+    height: 100,
+    borderRadius: 5,
   },
-  
+  removeButton: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    backgroundColor: 'red',
+    borderRadius: 15,
+    padding: 5,
+  },
+  removeButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
   imageButton: {
-      backgroundColor: '#008CBA',
-      padding: 10,
-      borderRadius: 10,
-      alignItems: 'center',
-      position: 'absolute', // Positioning the button at the bottom
-      bottom: 10, // Space from the bottom
-      left: 10, // Align to the left
-      right: 10, // Align to the right
+    backgroundColor: '#007bff',
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
   },
-  
-    publishButton: {
-        backgroundColor: '#28A745',
-        padding: 15,
-        borderRadius: 10,
-        alignItems: 'center',
-    },
-    publishButtonText: {
-        color: '#fff',
-        fontWeight: 'bold',
-    },
+  imageButtonText: {
+    color: 'white',
+    textAlign: 'center',
+  },
+  publishButton: {
+    backgroundColor: '#28a745',
+    padding: 15,
+    borderRadius: 5,
+    marginTop: 20,
+  },
+  publishButtonText: {
+    color: 'white',
+    textAlign: 'center',
+    fontSize: 18,
+  },
 });
