@@ -217,6 +217,13 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         marginTop: 20,
+        backgroundColor: '#F1F1F1',
+        paddingBottom:20,
+        paddingTop:20,
+        paddingRight:10,
+        paddingLeft:10,
+        borderRadius: 10,
+        elevation: 2,
     },
     image: {
         width: 50,
