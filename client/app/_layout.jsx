@@ -61,6 +61,10 @@ export default function RootLayout() {
         options={{
           headerShown:false
         }}/>
+        <Stack.Screen name="login/selectCategory" 
+        options={{
+          headerShown:false
+        }}/>
         <Stack.Screen name="login/signupV" 
         options={{
           headerShown:false
@@ -70,6 +74,10 @@ export default function RootLayout() {
           headerShown:false
         }}/>
         <Stack.Screen name="(tabs)" 
+        options={{
+          headerShown:false
+        }}/>
+        <Stack.Screen name="(Otabs)" 
         options={{
           headerShown:false
         }}/>
