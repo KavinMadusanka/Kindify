@@ -57,18 +57,6 @@ export default function Index() {
       <Link href={'/login'}>
         <Text>Go To Login Screen</Text>
       </Link>
-
-      <Link href={'(Otabs)/home'}>
-      <Text style={{
-        fontFamily:'outfit-bold',
-        fontSize:40,
-        color:"#16423C"
-      }}>Welcome</Text>
-      {/* <Image source={require('../assets/images/logo.jpg')} /> */}
-    </Link>
-      <Link href={'/login'}>
-        <Text>Go To Login Screen</Text>
-      </Link>
     </View>
   );
 }
