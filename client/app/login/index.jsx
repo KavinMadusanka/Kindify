@@ -1,10 +1,15 @@
 import { View, Text, Image, TextInput, Button, Pressable, ScrollView, KeyboardAvoidingView, Platform  } from 'react-native'
 import { SignedIn, SignedOut, useUser, useAuth, useSignIn  } from '@clerk/clerk-expo';
 import { Link, Redirect, useRouter  } from 'expo-router'
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { db } from '../../config/FirebaseConfig';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 
 export default function LoginScreen() {
-    const { user } = useUser()
+    const { user } = useUser();
+    const [userData, setUserData] = useState(null);
+    const userEmail = user?.primaryEmailAddress?.emailAddress;
+    const [loading, setLoading] = useState(true);
 
     const { isSignedIn } = useAuth()
     const { signIn, setActive, isLoaded } = useSignIn()
@@ -13,9 +18,55 @@ export default function LoginScreen() {
     const [emailAddress, setEmailAddress] = React.useState('')
     const [password, setPassword] = React.useState('')
 
-    // if (isSignedIn) {
-    //     return <Redirect href={'(tabs)/home'} />
-    // }
+
+    useEffect(() => {
+        const fetchUserData = async (email) => {
+          try {
+            // if (!emailAddress) {
+            //   console.error('No email found for the logged-in user.');
+            //   return;
+            // }
+    
+            // Create a query to find the user by email
+            const userQuery = query(
+              collection(db, 'users'), // Replace 'users' with your collection name
+              where('emailAddress', '==', email) // Adjust this based on your Firestore structure
+            );
+    
+            const querySnapshot = await getDocs(userQuery);
+    
+            if (!querySnapshot.empty) {
+              const userDoc = querySnapshot.docs[0].data();
+              setUserData({ ...userDoc, id: querySnapshot.docs[0].id }); // Add document ID for updates
+            } else {
+              console.log('No such user document!');
+            }
+          } catch (error) {
+            console.error('Error fetching user data:', error);
+          } finally {
+            setLoading(false);
+          }
+        };
+    
+        if (isSignedIn && userEmail) {
+            fetchUserData(userEmail); // Fetch data for signed-in user
+        }
+    }, [userEmail, isSignedIn]);
+
+    useEffect(() => {
+        if (isSignedIn && !loading && userData) {
+            console.log("userData: ", userData);
+                if (userData.role === 0) {
+                    if (!userData.category || userData.category.length === 0) {
+                        router.replace('/login/selectCategory');
+                    } else {
+                        router.replace('/(tabs)/home');
+                    }
+                } else {
+                    router.replace('/(Otabs)/home');
+                }
+        }
+    }, [isSignedIn, userData, loading]);
 
     const onSignInPress = React.useCallback(async () => {
         if (!isLoaded) {
@@ -29,8 +80,18 @@ export default function LoginScreen() {
           })
     
           if (signInAttempt.status === 'complete') {
-            await setActive({ session: signInAttempt.createdSessionId })
-            router.replace('/(tabs)/home')
+            await setActive({ session: signInAttempt.createdSessionId });
+            fetchUserData(emailAddress);
+            // if(userData.role == 0){
+            //     if(userData.category == null){
+            //         router.replace('/login/selectCategory')
+            //     }else{
+            //         router.replace('/(tabs)/home')
+            //     }
+            // }
+            // else{
+            //     router.replace('/(Otabs)/home')
+            // }
           } else {
             // See https://clerk.com/docs/custom-flows/error-handling
             // for more info on error handling
