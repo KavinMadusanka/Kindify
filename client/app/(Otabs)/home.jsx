@@ -23,19 +23,22 @@ const AllMyEvents = ({ navigation }) => {
   // Render event card
   const renderEventCard = ({ item }) => (
     <View style={styles.card}>
-      <Image source={{ uri: item.imageUrl }} style={styles.eventImage} />
-      <View style={styles.cardContent}>
-        <Text style={styles.eventTitle}>{item.category} Program</Text>
-        <Text style={styles.eventLocation}>{item.location}</Text>
-        <Text style={styles.eventDate}>{item.date}</Text>
-        <TouchableOpacity
-          style={styles.moreDetailsButton}
-          onPress={() => navigation.navigate('EventDetails', { eventId: item.id })} // Navigating to event details page
-        >
-          <Text style={styles.moreDetailsText}>More Details</Text>
-        </TouchableOpacity>
-      </View>
+    {/* Display the first image in the images array */}
+    {item.images && item.images.length > 0 && (
+      <Image source={{ uri: item.images[0] }} style={styles.eventImage} />
+    )}
+    <View style={styles.cardContent}>
+      <Text style={styles.eventTitle}>{item.category} Program</Text>
+      <Text style={styles.eventLocation}>{item.location}</Text>
+      <Text style={styles.eventDate}>{item.date}</Text>
+      <TouchableOpacity
+        style={styles.moreDetailsButton}
+        onPress={() => navigation.navigate('EventDetails', { eventId: item.id })} // Navigating to event details page
+      >
+        <Text style={styles.moreDetailsText}>More Details</Text>
+      </TouchableOpacity>
     </View>
+  </View>
   );
 
   return (
