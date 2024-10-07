@@ -1,7 +1,9 @@
-import React from 'react';
-import { View, Text, StyleSheet, Image, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
 import { Link } from 'expo-router';
-import { useUser } from '@clerk/clerk-expo'; // Import useUser hook
+import { useUser, useAuth } from '@clerk/clerk-expo';
+import { query, collection, where, getDocs } from 'firebase/firestore'; // Firestore methods
+import { db } from '../../config/FirebaseConfig'; // Firebase config
 
 // Import images
 const Customer = require('../../assets/images/Customer.png');
@@ -13,6 +15,46 @@ const Notification = require('../../assets/images/Notification.png');
 const Profile = () => {
   // Get the user data from Clerk
   const { user } = useUser();
+  const { signOut } = useAuth();
+  const userEmail = user?.primaryEmailAddress?.emailAddress; // Get current user's email
+
+  // Local state to hold Firestore data
+  const [firstName, setFirstName] = useState('');
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        if (userEmail) {
+          // Create a Firestore query to fetch the document where the email matches the current user's email
+          const usersCollection = collection(db, 'users');
+          const q = query(usersCollection, where('emailAddress', '==', userEmail)); // Ensure this matches your Firestore field name
+          const querySnapshot = await getDocs(q);
+
+          // Check if the query returned any documents
+          if (!querySnapshot.empty) {
+            querySnapshot.forEach((doc) => {
+              const userData = doc.data();
+              setFirstName(userData.firstName); // Fetch firstName from Firestore
+            });
+          } else {
+            console.log('No matching document found.');
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching user data from Firestore:', error);
+      }
+    };
+
+    fetchUserData(); // Fetch user data when the component mounts
+  }, [userEmail]);
+
+  const handleLogout = async () => {
+    try {
+      await signOut(); // Call the signOut method to log out
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+  };
 
   // Menu array for navigation options
   const Menu = [
@@ -20,31 +62,31 @@ const Profile = () => {
       id: 1,
       name: 'Personal Info',
       icon: Customer,
-      path: '/profile/personal_info',  // Correct path
+      path: '/profile/personal_info',
     },
     {
       id: 2,
       name: 'Monthly Goal Settings',
       icon: Goal,
-      path: '/profile/goal_settings',  // Correct path
+      path: '/profile/goal_settings',
     },
     {
       id: 3,
       name: 'Reminders',
       icon: Reminders,
-      path: '/profile/reminders',  // Correct path
+      path: '/profile/reminders',
     },
     {
       id: 4,
       name: 'Achievements',
       icon: Bookmark,
-      path: '/profile/achievements',  // Correct path
+      path: '/profile/achievements',
     },
     {
       id: 5,
       name: 'Notifications',
       icon: Notification,
-      path: 'notification',  // Correct path
+      path: '/profile/notifications',
     },
   ];
 
@@ -58,10 +100,10 @@ const Profile = () => {
           onError={() => console.log('Error loading image')} // Handle image load error
         />
         <Text style={styles.profileName}>
-          {user ? `${user.firstName}` : 'Your Name'}  {/* Only first name */}
+          {firstName || 'Your Name'}  {/* First name from Firestore */}
         </Text>
         <Text style={styles.profileEmail}>
-          {user?.primaryEmailAddress?.emailAddress || 'Email not available'}
+          {user?.primaryEmailAddress?.emailAddress || 'Email not available'} {/* Email from Clerk */}
         </Text>
       </View>
 
@@ -72,6 +114,11 @@ const Profile = () => {
           <Text style={styles.cardText}>{item.name}</Text>
         </Link>
       ))}
+
+      {/* Log Out Button at the Bottom */}
+      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <Text style={styles.logoutText}>Log Out</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 };
@@ -79,35 +126,35 @@ const Profile = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#D5E5E4', // background color
-    paddingHorizontal: 20, // Added more horizontal padding for better spacing
+    backgroundColor: '#D5E5E4',
+    paddingHorizontal: 20,
     paddingTop: 10,
   },
   profileContainer: {
     alignItems: 'center',
-    marginBottom: 30, // Adjusted for more space
+    marginBottom: 30,
   },
   profileImage: {
     width: 120,
     height: 120,
-    borderRadius: 60, // To make it circular
+    borderRadius: 60, // Circular image
     borderWidth: 2,
-    borderColor: '#FFF', // Added white border to the image for a better look
+    borderColor: '#FFF', // White border
   },
   profileName: {
     fontSize: 20,
     fontWeight: 'bold',
     marginTop: 15,
-    color: '#000', // Black text for profile name
+    color: '#000', // Black text
   },
   profileEmail: {
     fontSize: 16,
     marginTop: 5,
-    color: '#666', // Grey text for email
+    color: '#666', // Grey text
   },
   card: {
-    flexDirection: 'row', // Ensures image and text are side by side
-    backgroundColor: '#F3F7F6', // Light background color for the card
+    flexDirection: 'row', // Icon and text side by side
+    backgroundColor: '#F3F7F6', // Card background
     borderRadius: 20,
     paddingTop: 5,
     paddingBottom: 25,
@@ -117,10 +164,10 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 8,
-    elevation: 5, // For better shadow on Android
+    elevation: 5, // Shadow for Android
   },
   icon: {
-    width: 40, // Adjusted size based on icon
+    width: 40,
     height: 40,
     marginRight: 30, // Space between icon and text
   },
@@ -128,6 +175,19 @@ const styles = StyleSheet.create({
     fontSize: 17,
     color: '#000', // Black text
     marginLeft: 20,
+  },
+  logoutButton: {
+    backgroundColor: '#ff4d4d', // Red button for logout
+    padding: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom:30
+  },
+  logoutText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FFF', // White text
   },
 });
 
