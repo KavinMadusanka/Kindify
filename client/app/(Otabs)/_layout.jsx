@@ -14,34 +14,34 @@ export default function OTabLayout() {
             <Tabs.Screen name='home'
              options={{
                 title: 'Home',
-                headerShown:false,
+                headerShown:true,
                 tabBarIcon: ({color}) => <Entypo name="home" size={24} color="black" />
              }}/>
             <Tabs.Screen name='allAttendece'
              options={{
                 title: 'Attendese',
-                headerShown:false,
+                headerShown:true,
                 tabBarIcon: ({color}) => <MaterialIcons name="analytics" size={24} color="black"  />
              }}
             />
             <Tabs.Screen name='createEvent'
              options={{
                 title: 'CreateEvent',
-                headerShown:false,
+                headerShown:true,
                 tabBarIcon: ({color}) => <AntDesign name="pluscircle" size={24} color="black" />
              }}
             />
             <Tabs.Screen name='notification'
              options={{
                 title: 'Notifications',
-                headerShown:false,
+                headerShown:true,
                 tabBarIcon: ({color}) => <Ionicons name="notifications" size={24} color="black" />
              }}
             />
             <Tabs.Screen name='profile'
              options={{
                 title: 'Profile',
-                headerShown:false,
+                headerShown:true,
                 tabBarIcon: ({color}) => <FontAwesome name="user-circle-o" size={24} color="black" />
              }}
             />
