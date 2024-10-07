@@ -1,61 +1,220 @@
-import React from 'react';
-import { View, Text, StyleSheet, Image, ScrollView } from 'react-native';
-//import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-const User = require('../../assets/images/User.png');
-const Email = require('../../assets/images/Email.png');
-const Address = require('../../assets/images/Home Address.png');
-const Call = require('../../assets/images/Call.png');
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  ScrollView,
+  ActivityIndicator,
+  TextInput,
+  Button,
+  Alert,
+  Modal,
+} from 'react-native';
+import { useUser } from '@clerk/clerk-expo';
+import { db } from '../../config/FirebaseConfig'; // Make sure to import your Firebase configuration
+import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore'; // Import Firebase Firestore methods
+
+const UserIcon = require('../../assets/images/User.png');
+const EmailIcon = require('../../assets/images/Email.png');
+const AddressIcon = require('../../assets/images/Home Address.png');
+const CallIcon = require('../../assets/images/Call.png');
 
 const ProfileScreen = () => {
-  // Hardcoded details (replace with Firebase data later)
-  const user = {
-    name: 'Kavindya Fernando',
-    email: 'kavifernando89@gmail.com',
-    address: '34/H, Kadana Road, Malabe',
-    phone: '0774563245',
-    categories: ['Blood donation', 'Beach cleaning', 'Disaster relief'],
-    profileImage: 'https://your-image-url' // Add actual image URL
+  const { user } = useUser();
+  const userEmail = user?.primaryEmailAddress?.emailAddress;
+
+  // State to hold user data
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // States for updates
+  const [updatedName, setUpdatedName] = useState('');
+  const [updatedAddress, setUpdatedAddress] = useState('');
+  const [updatedContact, setUpdatedContact] = useState('');
+
+  // State for modal visibility
+  const [modalVisible, setModalVisible] = useState(false);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        if (!userEmail) {
+          console.error('No email found for the logged-in user.');
+          return;
+        }
+
+        // Create a query to find the user by email
+        const userQuery = query(
+          collection(db, 'users'), // Replace 'users' with your collection name
+          where('emailAddress', '==', userEmail) // Adjust this based on your Firestore structure
+        );
+
+        const querySnapshot = await getDocs(userQuery);
+
+        if (!querySnapshot.empty) {
+          const userDoc = querySnapshot.docs[0].data();
+          setUserData({ ...userDoc, id: querySnapshot.docs[0].id }); // Add document ID for updates
+        } else {
+          console.log('No such user document!');
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [userEmail]);
+
+  // Loading state while fetching data
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
+
+  // Render the profile if userData is available
+  if (!userData) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>User data not found.</Text>
+      </View>
+    );
+  }
+
+  // Update user data in Firestore
+  const handleUpdate = async () => {
+    if (!userData) return; // Do not proceed if userData is not available
+
+    try {
+      const userDocRef = doc(db, 'users', userData.id); // Get the user document reference
+
+      // Prepare the data to update
+      const updates = {};
+      if (updatedName) updates.firstName = updatedName; // Only update if not empty
+      if (updatedAddress) updates.Address = updatedAddress;
+      if (updatedContact) updates.Contact = updatedContact;
+
+      // Check if there are updates to make
+      if (Object.keys(updates).length > 0) {
+        // Update the user document in Firestore
+        await updateDoc(userDocRef, updates);
+
+        // Update local state to reflect changes
+        setUserData(prev => ({
+          ...prev,
+          ...updates,
+        }));
+
+        // Show success message
+        Alert.alert('Success', 'Your details updated successfully.');
+      } else {
+        Alert.alert('No Changes', 'No updates were made.');
+      }
+    } catch (error) {
+      console.error('Error updating user data:', error);
+      Alert.alert('Error', 'Failed to update your details. Please try again.');
+    }
+  };
+
+  const openUpdateForm = () => {
+    // Populate the input fields with current user data
+    setUpdatedName(userData.firstName);
+    setUpdatedAddress(userData.Address);
+    setUpdatedContact(userData.Contact);
+    setModalVisible(true);
+  };
+
+  const handleSubmit = () => {
+    handleUpdate();
+    setModalVisible(false); // Close modal after handling update
   };
 
   return (
     <ScrollView style={styles.container}>
       {/* Profile Image and Name */}
       <View style={styles.profileContainer}>
-        <Image style={styles.profileImage} source={{ uri: user.profileImage }} />
-        <Text style={styles.profileName}>{user.name}</Text>
-        {/* <MaterialIcons name="edit" size={24} color="black" style={styles.editIcon} /> */}
+        <Image
+          style={styles.profileImage}
+          source={{
+            uri: userData.profileImage || 'https://your-default-image-url.com',
+          }}
+        />
+        <Text style={styles.profileName}>{userData.firstName}</Text>
       </View>
 
       {/* Personal Info */}
       <View style={styles.infoCard}>
-      <Image source={User} style={styles.icon} />
-        <Text style={styles.infoText}>{user.name}</Text>
+        <Image source={UserIcon} style={styles.icon} />
+        <Text style={styles.infoText}>{userData.firstName}</Text>
       </View>
 
       <View style={styles.infoCard}>
-        <Image source={Email} style={styles.icon} />
-        <Text style={styles.infoText}>{user.email}</Text>
+        <Image source={EmailIcon} style={styles.icon} />
+        <Text style={styles.infoText}>{userData.emailAddress}</Text>
       </View>
 
       <View style={styles.infoCard}>
-        <Image source={Address} style={styles.icon} />
-        <Text style={styles.infoText}>{user.address}</Text>
+        <Image source={AddressIcon} style={styles.icon} />
+        <Text style={styles.infoText}>{userData.Address}</Text>
       </View>
 
       <View style={styles.infoCard}>
-        <Image source={Call} style={styles.icon} />
-        <Text style={styles.infoText}>{user.phone}</Text>
+        <Image source={CallIcon} style={styles.icon} />
+        <Text style={styles.infoText}>{userData.Contact}</Text>
       </View>
 
-      {/* Volunteer Categories */}
+      {/* Hardcoded Volunteer Categories */}
       <Text style={styles.sectionTitle}>Preferred Volunteer Categories</Text>
       <View style={styles.categoriesContainer}>
-        {user.categories.map((category, index) => (
+        {['Blood donation', 'Beach cleaning', 'Disaster relief'].map((category, index) => (
           <Text key={index} style={styles.categoryItem}>
             {category}
           </Text>
         ))}
       </View>
+
+      {/* Update Button */}
+      <Button title="Update Your Information" onPress={openUpdateForm} />
+
+      {/* Update Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalView}>
+          <Text style={styles.modalTitle}>Update Your Information</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Name"
+            value={updatedName}
+            onChangeText={setUpdatedName}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Address"
+            value={updatedAddress}
+            onChangeText={setUpdatedAddress}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Contact"
+            value={updatedContact}
+            onChangeText={setUpdatedContact}
+            keyboardType="phone-pad"
+          />
+          <View style={styles.modalButtonContainer}>
+            <Button title="Submit" onPress={handleSubmit} />
+            <Button title="Cancel" onPress={() => setModalVisible(false)} />
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -66,6 +225,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#D5E5E4',
     paddingHorizontal: 20,
     paddingVertical: 10,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    fontSize: 18,
+    color: 'red',
   },
   profileContainer: {
     alignItems: 'center',
@@ -84,11 +257,6 @@ const styles = StyleSheet.create({
     marginTop: 15,
     color: '#000',
   },
-  editIcon: {
-    position: 'absolute',
-    top: 80,
-    right: 10,
-  },
   infoCard: {
     flexDirection: 'row',
     backgroundColor: '#F3F7F6',
@@ -103,8 +271,8 @@ const styles = StyleSheet.create({
   },
   icon: {
     marginRight: 10,
-    width:40,
-    height:40
+    width: 40,
+    height: 40,
   },
   infoText: {
     fontSize: 16,
@@ -124,11 +292,40 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 5,
+    marginBottom:20
   },
   categoryItem: {
     fontSize: 16,
     color: '#000',
     marginBottom: 5,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 15,
+    backgroundColor: '#fff',
+    width:300
+  },
+  modalView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#D5E5E4',
+    padding: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    color: 'black',
+  },
+  modalButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+    marginTop: 10,
   },
 });
 
