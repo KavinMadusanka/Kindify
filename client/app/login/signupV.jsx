@@ -14,6 +14,7 @@ export default function signupV() {
   const [firstName, setFirstName] = React.useState('')
   const [Address, setAddress] = React.useState('')
   const [Contact, setContact] = React.useState('')
+  const [category, setCategory] = React.useState('')
   const [ConfirmPass, setConfirmPass] = React.useState('')
   const [password, setPassword] = React.useState('')
   const [pendingVerification, setPendingVerification] = React.useState(false)
@@ -53,16 +54,11 @@ export default function signupV() {
       await signUp.create({
         emailAddress,
         password,
-        firstName,
-        Address,
-        Contact,
-        role,
       })
 
     await signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
 
       setPendingVerification(true);
-      uploadFormData();
     } catch (err) {
       // See https://clerk.com/docs/custom-flows/error-handling
       // for more info on error handling
@@ -77,7 +73,8 @@ export default function signupV() {
         emailAddress,
         Address,
         Contact,
-        role
+        role,
+        category
     };
 
     const docRef = await addDoc(collection(db, 'users'), UserData);
@@ -100,8 +97,9 @@ export default function signupV() {
       })
 
       if (completeSignUp.status === 'complete') {
-        await setActive({ session: completeSignUp.createdSessionId })
-        router.replace('(tabs)/home')
+        await setActive({ session: completeSignUp.createdSessionId });
+        uploadFormData();
+        router.replace('/login')
       } else {
         console.error(JSON.stringify(completeSignUp, null, 2))
       }
@@ -257,8 +255,9 @@ export default function signupV() {
                         autoCapitalize="none"
                         value={Contact}
                         placeholder="Contact No..."
-                        keyboardType='numeric-pad'
+                        keyboardType='numeric'
                         onChangeText={(contact) => setContact(contact)}
+                        maxLength={10}
                         style={{color:"#16423C"}}
                         placeholderTextColor="#16423C"
                       />
