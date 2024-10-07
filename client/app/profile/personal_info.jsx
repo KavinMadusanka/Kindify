@@ -12,8 +12,8 @@ import {
   Modal,
 } from 'react-native';
 import { useUser } from '@clerk/clerk-expo';
-import { db } from '../../config/FirebaseConfig'; // Import your Firebase configuration
-import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore'; // Import Firebase Firestore methods
+import { db } from '../../config/FirebaseConfig';
+import { collection, query, where, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 
 const UserIcon = require('../../assets/images/User.png');
 const EmailIcon = require('../../assets/images/Email.png');
@@ -24,18 +24,15 @@ const ProfileScreen = () => {
   const { user } = useUser();
   const userEmail = user?.primaryEmailAddress?.emailAddress;
 
-  // State to hold user data
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [categories, setCategories] = useState([]); // State to hold categories
+  const [categories, setCategories] = useState([]);
 
-  // States for updates
   const [updatedName, setUpdatedName] = useState('');
   const [updatedAddress, setUpdatedAddress] = useState('');
   const [updatedContact, setUpdatedContact] = useState('');
-  const [updatedCategories, setUpdatedCategories] = useState(''); // New state for updated categories
+  const [updatedCategories, setUpdatedCategories] = useState('');
 
-  // State for modal visibility
   const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
@@ -46,20 +43,17 @@ const ProfileScreen = () => {
           return;
         }
 
-        // Create a query to find the user by email
         const userQuery = query(
-          collection(db, 'users'), // Replace 'users' with your collection name
-          where('emailAddress', '==', userEmail) // Adjust this based on your Firestore structure
+          collection(db, 'users'),
+          where('emailAddress', '==', userEmail)
         );
 
         const querySnapshot = await getDocs(userQuery);
 
         if (!querySnapshot.empty) {
           const userDoc = querySnapshot.docs[0].data();
-          setUserData({ ...userDoc, id: querySnapshot.docs[0].id }); // Add document ID for updates
-
-          // Set categories if available
-          setCategories(userDoc.category || []); // Assuming 'category' is an array in Firestore
+          setUserData({ ...userDoc, id: querySnapshot.docs[0].id });
+          setCategories(userDoc.category || []);
         } else {
           console.log('No such user document!');
         }
@@ -73,7 +67,6 @@ const ProfileScreen = () => {
     fetchUserData();
   }, [userEmail]);
 
-  // Loading state while fetching data
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -82,7 +75,6 @@ const ProfileScreen = () => {
     );
   }
 
-  // Render the profile if userData is available
   if (!userData) {
     return (
       <View style={styles.errorContainer}>
@@ -91,32 +83,23 @@ const ProfileScreen = () => {
     );
   }
 
-  // Update user data in Firestore
   const handleUpdate = async () => {
-    if (!userData) return; // Do not proceed if userData is not available
+    if (!userData) return;
 
     try {
-      const userDocRef = doc(db, 'users', userData.id); // Get the user document reference
-
-      // Prepare the data to update
+      const userDocRef = doc(db, 'users', userData.id);
       const updates = {};
-      if (updatedName) updates.firstName = updatedName; // Only update if not empty
+      if (updatedName) updates.firstName = updatedName;
       if (updatedAddress) updates.Address = updatedAddress;
       if (updatedContact) updates.Contact = updatedContact;
-      if (updatedCategories) updates.category = updatedCategories.split(',').map(cat => cat.trim()); // Convert string to array
+      if (updatedCategories) updates.category = updatedCategories.split(',').map(cat => cat.trim());
 
-      // Check if there are updates to make
       if (Object.keys(updates).length > 0) {
-        // Update the user document in Firestore
         await updateDoc(userDocRef, updates);
-
-        // Update local state to reflect changes
         setUserData((prev) => ({
           ...prev,
           ...updates,
         }));
-
-        // Show success message
         Alert.alert('Success', 'Your details updated successfully.');
       } else {
         Alert.alert('No Changes', 'No updates were made.');
@@ -128,22 +111,47 @@ const ProfileScreen = () => {
   };
 
   const openUpdateForm = () => {
-    // Populate the input fields with current user data
     setUpdatedName(userData.firstName);
     setUpdatedAddress(userData.Address);
     setUpdatedContact(userData.Contact);
-    setUpdatedCategories(categories.join(', ')); // Populate categories as a comma-separated string
+    setUpdatedCategories(categories.join(', '));
     setModalVisible(true);
   };
 
   const handleSubmit = () => {
     handleUpdate();
-    setModalVisible(false); // Close modal after handling update
+    setModalVisible(false);
+  };
+
+  const handleDeleteAccount = async () => {
+    Alert.alert(
+      'Delete Account',
+      'Are you sure you want to delete this account?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Yes',
+          onPress: async () => {
+            try {
+              const userDocRef = doc(db, 'users', userData.id);
+              await deleteDoc(userDocRef);
+              Alert.alert('Success', 'Your account has been deleted successfully.');
+              // Redirect to login screen or home (implement navigation as needed)
+            } catch (error) {
+              console.error('Error deleting user data:', error);
+              Alert.alert('Error', 'Failed to delete your account. Please try again.');
+            }
+          },
+        },
+      ]
+    );
   };
 
   return (
     <ScrollView style={styles.container}>
-      {/* Profile Image and Name */}
       <View style={styles.profileContainer}>
         <Image
           style={styles.profileImage}
@@ -154,7 +162,6 @@ const ProfileScreen = () => {
         <Text style={styles.profileName}>{userData.firstName}</Text>
       </View>
 
-      {/* Personal Info */}
       <View style={styles.infoCard}>
         <Image source={UserIcon} style={styles.icon} />
         <Text style={styles.infoText}>{userData.firstName}</Text>
@@ -175,7 +182,6 @@ const ProfileScreen = () => {
         <Text style={styles.infoText}>{userData.Contact}</Text>
       </View>
 
-      {/* Categories fetched from database */}
       <Text style={styles.sectionTitle}>Preferred Volunteer Categories</Text>
       <View style={styles.categoriesContainer}>
         {categories.length > 0 ? (
@@ -189,8 +195,13 @@ const ProfileScreen = () => {
         )}
       </View>
 
-      {/* Update Button */}
-      <Button title="Update Your Information" onPress={openUpdateForm} />
+      <View style={styles.buttonContainer}>
+        <Button title="Update Your Information" onPress={openUpdateForm} />
+      </View>
+
+      <View style={styles.bContainer}>
+        <Button title="Delete Account" color="red" onPress={handleDeleteAccount} />
+      </View>
 
       {/* Update Modal */}
       <Modal
@@ -223,7 +234,7 @@ const ProfileScreen = () => {
             onChangeText={setUpdatedContact}
             keyboardType="phone-pad"
           />
-          <Text style={styles.modalTitlee}>Prefered volunteer categories</Text>
+          <Text style={styles.modalTitlee}>Preferred volunteer categories</Text>
           <TextInput
             style={styles.inputt}
             placeholder="Categories (comma-separated)"
@@ -266,8 +277,8 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   profileImage: {
-    width: 100,
-    height: 100,
+    width: 120,
+    height: 120,
     borderRadius: 50,
     borderWidth: 2,
     borderColor: '#FFF',
@@ -275,7 +286,7 @@ const styles = StyleSheet.create({
   profileName: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginTop: 15,
+    marginTop: 20,
     color: '#000',
   },
   infoCard: {
@@ -337,7 +348,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     backgroundColor: '#fff',
     width: 350,
-    height:100
+    height: 100,
   },
   modalView: {
     flex: 1,
@@ -345,6 +356,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#D5E5E4',
     padding: 20,
   },
+  modallView: {
+    margin: 20, // Add some margin around the modal
+    marginTop:300,
+    backgroundColor: '#D5E4E4',
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 5,
+    width: '90%', // Set width as needed
+    maxHeight: '100%', // Limit the height of the modal
+  },
+  
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
@@ -363,6 +389,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 5,
     color: 'black',
+  },
+  buttonContainer: {
+    marginVertical: 10, // Adjust the space between buttons
+  },
+  bContainer: {
+    marginVertical: 10, // Adjust the space between buttons
+    marginBottom:40,
   },
 });
 
