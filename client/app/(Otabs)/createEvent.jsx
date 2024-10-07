@@ -226,7 +226,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#E6F2F0',
-    padding: 20,
+    paddingHorizontal: 20, // Added more horizontal padding for better spacing
+    paddingTop: 75,
   },
   inputContainer: {
     flexDirection: 'row',
