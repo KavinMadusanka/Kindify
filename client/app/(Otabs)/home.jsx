@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, Image, FlatList, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../config/FirebaseConfig'; // Import your Firebase configuration
 
 const AllMyEvents = ({ navigation }) => {
   const [events, setEvents] = useState([]);
+  const [searchQuery, setSearchQuery] = useState(''); // State to store search query
+  const [filteredEvents, setFilteredEvents] = useState([]); // State to store filtered events
 
   // Fetch events from Firestore
   const fetchEvents = async () => {
@@ -14,37 +16,57 @@ const AllMyEvents = ({ navigation }) => {
       eventsData.push({ id: doc.id, ...doc.data() });
     });
     setEvents(eventsData);
+    setFilteredEvents(eventsData); // Initially, show all events
   };
 
   useEffect(() => {
     fetchEvents();
   }, []);
 
+  // Filter events based on search query
+  useEffect(() => {
+    if (searchQuery === '') {
+      setFilteredEvents(events); // Show all events if search query is empty
+    } else {
+      const filtered = events.filter((event) =>
+        event.category.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredEvents(filtered);
+    }
+  }, [searchQuery, events]);
+
   // Render event card
   const renderEventCard = ({ item }) => (
     <View style={styles.card}>
-    {/* Display the first image in the images array */}
-    {item.images && item.images.length > 0 && (
-      <Image source={{ uri: item.images[0] }} style={styles.eventImage} />
-    )}
-    <View style={styles.cardContent}>
-      <Text style={styles.eventTitle}>{item.category} Program</Text>
-      <Text style={styles.eventLocation}>{item.location}</Text>
-      <Text style={styles.eventDate}>{item.date}</Text>
-      <TouchableOpacity
-        style={styles.moreDetailsButton}
-        onPress={() => navigation.navigate('EventDetails', { eventId: item.id })} // Navigating to event details page
-      >
-        <Text style={styles.moreDetailsText}>More Details</Text>
-      </TouchableOpacity>
+      {/* Display the first image in the images array */}
+      {item.images && item.images.length > 0 && (
+        <Image source={{ uri: item.images[0] }} style={styles.eventImage} />
+      )}
+      <View style={styles.cardContent}>
+        <Text style={styles.eventTitle}>{item.category} Program</Text>
+        <Text style={styles.eventLocation}>{item.location}</Text>
+        <Text style={styles.eventDate}>{item.date}</Text>
+        <TouchableOpacity
+          style={styles.moreDetailsButton}
+          onPress={() => navigation.navigate('EventDetails', { eventId: item.id })} // Navigating to event details page
+        >
+          <Text style={styles.moreDetailsText}>More Details</Text>
+        </TouchableOpacity>
+      </View>
     </View>
-  </View>
   );
 
   return (
     <View style={styles.container}>
+      {/* Search bar */}
+      <TextInput
+        style={styles.searchBar}
+        placeholder="Search by Category..."
+        value={searchQuery}
+        onChangeText={(text) => setSearchQuery(text)}
+      />
       <FlatList
-        data={events}
+        data={filteredEvents}
         keyExtractor={(item) => item.id}
         renderItem={renderEventCard}
         contentContainerStyle={styles.list}
@@ -62,6 +84,14 @@ const styles = StyleSheet.create({
   },
   list: {
     padding: 20,
+  },
+  searchBar: {
+    backgroundColor: '#fff',
+    padding: 10,
+    borderRadius: 5,
+    margin: 15,
+    borderColor: '#ddd',
+    borderWidth: 1,
   },
   card: {
     backgroundColor: '#fff',
