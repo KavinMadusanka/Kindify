@@ -1,8 +1,8 @@
 import { Link } from "expo-router";
 import { Text, View ,Image, Pressable} from "react-native";
-import { useAuth } from '@clerk/clerk-expo'
+import { useAuth,useUser } from '@clerk/clerk-expo'
 import { Redirect, Stack, useRouter  } from 'expo-router'
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function Index() {
 
@@ -12,19 +12,17 @@ export default function Index() {
   useEffect(() => {
     const timer = setTimeout(() => {
 
-        if (isSignedIn) {
-          router.push('(tabs)/home');
-        }
-        if (!isSignedIn) {
+        // if (isSignedIn) {
+        //   router.push('(tabs)/home');
+        // }
+        // if (!isSignedIn) {
           router.push('/login');
-        }
+        // }
       }, 2000);
       return () => clearTimeout(timer); // Cleanup the timer on component unmount
     }, [isSignedIn, router]);
 
-    // useEffect(() => {
-    //   setTimeout();
-    // },[isSignedIn, router])
+
 
 
   return (
@@ -38,7 +36,7 @@ export default function Index() {
     >
     <Link href={'(tabs)/home'}>
       <Text style={{
-        fontFamily:'outfit-bold',
+        // fontFamily:'outfit-bold',
         fontSize:40,
         color:"#16423C"
       }}>Welcome</Text>
@@ -50,7 +48,7 @@ export default function Index() {
 
       <Link href={'(Otabs)/home'}>
       <Text style={{
-        fontFamily:'outfit-bold',
+        // fontFamily:'outfit-bold',
         fontSize:40,
         color:"#16423C"
       }}>Welcome</Text>

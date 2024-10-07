@@ -1,7 +1,9 @@
 import React from 'react'
-import { View, Text, Image, TextInput, Button, ScrollView, KeyboardAvoidingView, Platform } from 'react-native'
+import { View, Text, Image, TextInput, Button, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, Alert } from 'react-native'
 import { useSignUp } from '@clerk/clerk-expo'
 import { Link, useRouter } from 'expo-router'
+import { db } from '../../config/FirebaseConfig';
+import { collection, addDoc } from 'firebase/firestore';
 
 export default function signupV() {
 
@@ -12,12 +14,14 @@ export default function signupV() {
   const [firstName, setFirstName] = React.useState('')
   const [Address, setAddress] = React.useState('')
   const [Contact, setContact] = React.useState('')
+  const [category, setCategory] = React.useState('')
   const [ConfirmPass, setConfirmPass] = React.useState('')
   const [password, setPassword] = React.useState('')
   const [pendingVerification, setPendingVerification] = React.useState(false)
   const [code, setCode] = React.useState('')
   const [message, setMessage] = React.useState("")
-  const [errorMessage, setErrorMessage] = React.useState("");;
+  const [errorMessage, setErrorMessage] = React.useState("");
+  const [errorfirstName, setErrorfirstName] = React.useState("");
   const [role, setRole] = React.useState(0)
 
   const handleConfirmPassChange = (passw) => {
@@ -30,8 +34,17 @@ export default function signupV() {
   };
 
   const onSignUpPress = async () => {
+    console.log(emailAddress);
+    console.log(password);
+    console.log(firstName);
+    console.log(Address);
+    console.log(Contact);
+    console.log(role);
     if (!isLoaded) {
       return
+    }
+    if (!firstName) {
+      return setErrorfirstName("Name is required.");
     }
     if (!emailAddress) {
       return setErrorMessage("Email is required.");
@@ -41,19 +54,35 @@ export default function signupV() {
       await signUp.create({
         emailAddress,
         password,
-        firstName,
-        Address,
-        Contact,
-        role,
       })
 
     await signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
 
-      setPendingVerification(true)
+      setPendingVerification(true);
     } catch (err) {
       // See https://clerk.com/docs/custom-flows/error-handling
       // for more info on error handling
       console.error(JSON.stringify(err, null, 2))
+    }
+  }
+  
+  const uploadFormData=async()=>{
+    try {
+      const UserData = {
+        firstName,
+        emailAddress,
+        Address,
+        Contact,
+        role,
+        category
+    };
+
+    const docRef = await addDoc(collection(db, 'users'), UserData);
+    Alert.alert('Registered successful!');
+      
+    } catch (error) {
+      console.error('Error adding document: ', error);
+      Alert.alert('Error Registrating. Please try again.');
     }
   }
 
@@ -68,8 +97,9 @@ export default function signupV() {
       })
 
       if (completeSignUp.status === 'complete') {
-        await setActive({ session: completeSignUp.createdSessionId })
-        router.replace('(tabs)/home')
+        await setActive({ session: completeSignUp.createdSessionId });
+        uploadFormData();
+        router.replace('/login')
       } else {
         console.error(JSON.stringify(completeSignUp, null, 2))
       }
@@ -139,6 +169,9 @@ export default function signupV() {
                       />
               </View>
             </View>
+            {errorfirstName ? (
+              <Text style={{ color: "red", marginTop: 5, paddingLeft:30 }}>{errorfirstName}</Text>
+            ) : null}
             <View style={{
               marginTop:5,
               paddingLeft:15
@@ -222,7 +255,9 @@ export default function signupV() {
                         autoCapitalize="none"
                         value={Contact}
                         placeholder="Contact No..."
+                        keyboardType='numeric'
                         onChangeText={(contact) => setContact(contact)}
+                        maxLength={10}
                         style={{color:"#16423C"}}
                         placeholderTextColor="#16423C"
                       />
@@ -291,15 +326,16 @@ export default function signupV() {
               </Text>
             ) : null}
             <View style={{alignItems:"center"}}>
-              <View style={{
-                    padding:4,
+              <TouchableOpacity style={{
+                    padding:14,
                     marginTop:30,
                     backgroundColor:'#E9EFEC',
                     width:'40%',
                     color:"#16423C",
-                    borderRadius:14}}>
-                <Button title="Sign Up" onPress={onSignUpPress} color="#16423C"/>
-                </View>
+                    borderRadius:14}}
+                    onPress={onSignUpPress}>
+                <Text style={{color:"#16423C", textAlign:"center"}} >Sign Up</Text>
+                </TouchableOpacity>
               </View>
             </>
           // </View>
