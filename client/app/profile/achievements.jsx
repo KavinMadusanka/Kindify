@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
-    backgroundColor: "#E5F0E5",
+    backgroundColor: "#E7EFEF",
   },
   subtitle: {
     marginTop: 20,
