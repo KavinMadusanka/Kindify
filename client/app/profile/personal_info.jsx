@@ -12,7 +12,7 @@ import {
   Modal,
 } from 'react-native';
 import { useUser } from '@clerk/clerk-expo';
-import { db } from '../../config/FirebaseConfig'; // Make sure to import your Firebase configuration
+import { db } from '../../config/FirebaseConfig'; // Import your Firebase configuration
 import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore'; // Import Firebase Firestore methods
 
 const UserIcon = require('../../assets/images/User.png');
@@ -27,11 +27,13 @@ const ProfileScreen = () => {
   // State to hold user data
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState([]); // State to hold categories
 
   // States for updates
   const [updatedName, setUpdatedName] = useState('');
   const [updatedAddress, setUpdatedAddress] = useState('');
   const [updatedContact, setUpdatedContact] = useState('');
+  const [updatedCategories, setUpdatedCategories] = useState(''); // New state for updated categories
 
   // State for modal visibility
   const [modalVisible, setModalVisible] = useState(false);
@@ -55,6 +57,9 @@ const ProfileScreen = () => {
         if (!querySnapshot.empty) {
           const userDoc = querySnapshot.docs[0].data();
           setUserData({ ...userDoc, id: querySnapshot.docs[0].id }); // Add document ID for updates
+
+          // Set categories if available
+          setCategories(userDoc.category || []); // Assuming 'category' is an array in Firestore
         } else {
           console.log('No such user document!');
         }
@@ -98,6 +103,7 @@ const ProfileScreen = () => {
       if (updatedName) updates.firstName = updatedName; // Only update if not empty
       if (updatedAddress) updates.Address = updatedAddress;
       if (updatedContact) updates.Contact = updatedContact;
+      if (updatedCategories) updates.category = updatedCategories.split(',').map(cat => cat.trim()); // Convert string to array
 
       // Check if there are updates to make
       if (Object.keys(updates).length > 0) {
@@ -105,7 +111,7 @@ const ProfileScreen = () => {
         await updateDoc(userDocRef, updates);
 
         // Update local state to reflect changes
-        setUserData(prev => ({
+        setUserData((prev) => ({
           ...prev,
           ...updates,
         }));
@@ -126,6 +132,7 @@ const ProfileScreen = () => {
     setUpdatedName(userData.firstName);
     setUpdatedAddress(userData.Address);
     setUpdatedContact(userData.Contact);
+    setUpdatedCategories(categories.join(', ')); // Populate categories as a comma-separated string
     setModalVisible(true);
   };
 
@@ -168,14 +175,18 @@ const ProfileScreen = () => {
         <Text style={styles.infoText}>{userData.Contact}</Text>
       </View>
 
-      {/* Hardcoded Volunteer Categories */}
+      {/* Categories fetched from database */}
       <Text style={styles.sectionTitle}>Preferred Volunteer Categories</Text>
       <View style={styles.categoriesContainer}>
-        {['Blood donation', 'Beach cleaning', 'Disaster relief'].map((category, index) => (
-          <Text key={index} style={styles.categoryItem}>
-            {category}
-          </Text>
-        ))}
+        {categories.length > 0 ? (
+          categories.map((category, index) => (
+            <Text key={index} style={styles.categoryItem}>
+              {category}
+            </Text>
+          ))
+        ) : (
+          <Text>No categories found.</Text>
+        )}
       </View>
 
       {/* Update Button */}
@@ -190,24 +201,34 @@ const ProfileScreen = () => {
       >
         <View style={styles.modalView}>
           <Text style={styles.modalTitle}>Update Your Information</Text>
+          <Text style={styles.modalTitlee}>Full Name</Text>
           <TextInput
             style={styles.input}
             placeholder="Name"
             value={updatedName}
             onChangeText={setUpdatedName}
           />
+          <Text style={styles.modalTitlee}>Address</Text>
           <TextInput
             style={styles.input}
             placeholder="Address"
             value={updatedAddress}
             onChangeText={setUpdatedAddress}
           />
+          <Text style={styles.modalTitlee}>Contact Number</Text>
           <TextInput
             style={styles.input}
             placeholder="Contact"
             value={updatedContact}
             onChangeText={setUpdatedContact}
             keyboardType="phone-pad"
+          />
+          <Text style={styles.modalTitlee}>Prefered volunteer categories</Text>
+          <TextInput
+            style={styles.inputt}
+            placeholder="Categories (comma-separated)"
+            value={updatedCategories}
+            onChangeText={setUpdatedCategories}
           />
           <View style={styles.modalButtonContainer}>
             <Button title="Submit" onPress={handleSubmit} />
@@ -292,7 +313,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 5,
-    marginBottom:20
+    marginBottom: 20,
   },
   categoryItem: {
     fontSize: 16,
@@ -306,26 +327,42 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 15,
     backgroundColor: '#fff',
-    width:300
+    width: 350,
+  },
+  inputt: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 15,
+    backgroundColor: '#fff',
+    width: 350,
+    height:100
   },
   modalView: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
     backgroundColor: '#D5E5E4',
     padding: 20,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginBottom: 30,
     color: 'black',
+    textAlign: 'center',
   },
   modalButtonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     width: '100%',
     marginTop: 10,
+  },
+  modalTitlee: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 5,
+    color: 'black',
   },
 });
 
