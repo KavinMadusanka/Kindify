@@ -9,6 +9,7 @@ import { useFonts } from 'expo-font';
 export default function signupO() {
   const [fontsLoaded] = useFonts({
     'Outfit-Bold': require('../../assets/fonts/Outfit-Bold.ttf'),
+    'Outfit-Medium':require('../../assets/fonts/Outfit-Medium.ttf'),
   });
 
   const { isLoaded, signUp, setActive } = useSignUp()
@@ -164,6 +165,7 @@ export default function signupO() {
               <Text style={{
                   fontSize:20,
                   paddingLeft:15,
+                  fontFamily:'Outfit-Medium',
                   color:"#16423C"
                   }}>Organization Name :</Text>
             </View>
@@ -180,13 +182,13 @@ export default function signupO() {
                         value={firstName}
                         placeholder="Name..."
                         onChangeText={(firstName) => setFirstName(firstName)}
-                        style={{color:"#16423C"}}
+                        style={{color:"#16423C",fontFamily:'Outfit-Medium'}}
                         placeholderTextColor="#16423C"
                       />
               </View>
             </View>
             {errorfirstName ? (
-              <Text style={{ color: "red", marginTop: 5, paddingLeft:30 }}>{errorfirstName}</Text>
+              <Text style={{ color: "red", marginTop: 5, fontFamily:'Outfit-Medium', paddingLeft:30 }}>{errorfirstName}</Text>
             ) : null}
             <View style={{
               marginTop:5,
@@ -195,6 +197,7 @@ export default function signupO() {
               <Text style={{
                   fontSize:20,
                   paddingLeft:15,
+                  fontFamily:'Outfit-Medium',
                   color:"#16423C"
                   }}>Email :</Text>
             </View>
@@ -212,14 +215,14 @@ export default function signupO() {
                         required={true}
                         placeholder="Email..."
                         onChangeText={(email) => setEmailAddress(email)}
-                        style={{color:"#16423C"}}
+                        style={{color:"#16423C",fontFamily:'Outfit-Medium',}}
                         placeholderTextColor="#16423C"
                       />
               </View>
             </View>
             {/* Error Message */}
             {errorMessage ? (
-              <Text style={{ color: "red", marginTop: 5, paddingLeft:30 }}>{errorMessage}</Text>
+              <Text style={{ color: "red", fontFamily:'Outfit-Medium', marginTop: 5, paddingLeft:30 }}>{errorMessage}</Text>
             ) : null}
             <View style={{
               marginTop:5,
@@ -227,6 +230,7 @@ export default function signupO() {
               }}>
               <Text style={{
                   fontSize:20,
+                  fontFamily:'Outfit-Medium',
                   paddingLeft:15,
                   color:"#16423C"
                   }}>Address :</Text>
@@ -244,13 +248,13 @@ export default function signupO() {
                         value={Address}
                         placeholder="Address..."
                         onChangeText={(address) => setAddress(address)}
-                        style={{color:"#16423C"}}
+                        style={{color:"#16423C", fontFamily:'Outfit-Medium',}}
                         placeholderTextColor="#16423C"
                       />
               </View>
             </View>
             {errorAddress ? (
-              <Text style={{ color: "red", marginTop: 5, paddingLeft:30 }}>{errorAddress}</Text>
+              <Text style={{ color: "red", fontFamily:'Outfit-Medium', marginTop: 5, paddingLeft:30 }}>{errorAddress}</Text>
             ) : null}
             <View style={{
               marginTop:5,
@@ -258,6 +262,7 @@ export default function signupO() {
               }}>
               <Text style={{
                   fontSize:20,
+                  fontFamily:'Outfit-Medium',
                   paddingLeft:15,
                   color:"#16423C"
                   }}>Contact No :</Text>
@@ -277,13 +282,13 @@ export default function signupO() {
                         keyboardType='numeric'
                         onChangeText={(contact) => setContact(contact)}
                         maxLength={10}
-                        style={{color:"#16423C"}}
+                        style={{color:"#16423C", fontFamily:'Outfit-Medium',}}
                         placeholderTextColor="#16423C"
                       />
               </View>
             </View>
             {errorContact ? (
-              <Text style={{ color: "red", marginTop: 5, paddingLeft:30 }}>{errorContact}</Text>
+              <Text style={{ color: "red", fontFamily:'Outfit-Medium', marginTop: 5, paddingLeft:30 }}>{errorContact}</Text>
             ) : null}
             <View style={{
               marginTop:5,
@@ -291,6 +296,7 @@ export default function signupO() {
               }}>
               <Text style={{
                   fontSize:20,
+                  fontFamily:'Outfit-Medium',
                   paddingLeft:15,
                   color:"#16423C"
                   }}>Password :</Text>
@@ -307,13 +313,13 @@ export default function signupO() {
                         placeholder="Password..."
                         secureTextEntry={true}
                         placeholderTextColor="#16423C"
-                        style={{color:"#16423C"}}
+                        style={{fontFamily:'Outfit-Medium', color:"#16423C"}}
                         onChangeText={(password) => setPassword(password)}
                       />
               </View>
               </View>
               {errorPassword ? (
-              <Text style={{ color: "red", marginTop: 5, paddingLeft:30 }}>{errorPassword}</Text>
+              <Text style={{ color: "red", fontFamily:'Outfit-Medium', marginTop: 5, paddingLeft:30 }}>{errorPassword}</Text>
             ) : null}
               <View style={{
               marginTop:5,
@@ -321,6 +327,7 @@ export default function signupO() {
               }}>
               <Text style={{
                   fontSize:20,
+                  fontFamily:'Outfit-Medium',
                   paddingLeft:15,
                   color:"#16423C"
                   }}>Confirm password :</Text>
@@ -339,14 +346,14 @@ export default function signupO() {
                         secureTextEntry={true}
                         placeholder="Confirm password..."
                         onChangeText={handleConfirmPassChange}
-                        style={{color:"#16423C"}}
+                        style={{fontFamily:'Outfit-Medium', color:"#16423C"}}
                         placeholderTextColor="#16423C"
                       />
               </View>
             </View>
             {/* Validation Message */}
             {message ? (
-              <Text style={{ color: password === ConfirmPass ? "green" : "red", paddingLeft: 30, marginTop: 5 }}>
+              <Text style={{ color: password === ConfirmPass ? "green" : "red", fontFamily:'Outfit-Medium', paddingLeft: 30, marginTop: 5 }}>
                 {message}
               </Text>
             ) : null}
@@ -359,7 +366,7 @@ export default function signupO() {
                     color:"#16423C",
                     borderRadius:14}}
                     onPress={onSignUpPress}>
-                <Text style={{color:"#16423C", textAlign:"center"}} >Sign Up</Text>
+                <Text style={{color:"#16423C", fontFamily:'Outfit-Medium', textAlign:"center"}} >Sign Up</Text>
                 </TouchableOpacity>
               </View>
             </>
@@ -373,6 +380,7 @@ export default function signupO() {
               }}>
               <Text style={{
                   fontSize:20,
+                  fontFamily:'Outfit-Medium',
                   paddingLeft:15,
                   color:"#16423C"
                   }}>Verification Code :</Text>
@@ -387,7 +395,7 @@ export default function signupO() {
               width:'90%',
               color:"#16423C",
               borderRadius:14}}>
-                <TextInput value={code} keyboardType='numeric' placeholder="Code..." onChangeText={(code) => setCode(code)} />
+                <TextInput value={code} keyboardType='numeric' style={{fontFamily:'Outfit-Medium'}} placeholder="Code..." onChangeText={(code) => setCode(code)} />
               </View>
               <View style={{
                     padding:4,
@@ -396,7 +404,7 @@ export default function signupO() {
                     width:'40%',
                     color:"#16423C",
                     borderRadius:14}}>
-                <Button title="Verify Email" onPress={onPressVerify} color="#16423C" />
+                <Button title="Verify Email" style={{fontFamily:'Outfit-Medium'}} onPress={onPressVerify} color="#16423C" />
               </View>
             </View>
           </>
@@ -408,7 +416,7 @@ export default function signupO() {
                   marginBottom:80
                   }}>
               <Link href="/login">
-                  <Text style={{fontFamily:'outfit-bold',color:"#16423C"}}>Already Have an account ? Click Here.</Text>
+                  <Text style={{fontFamily:'Outfit-Bold',color:"#16423C"}}>Already Have an account ? Click Here.</Text>
               </Link>
           </View>
       </View>
