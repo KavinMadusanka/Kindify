@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { StyleSheet, View, Text, Image, TouchableOpacity, Modal } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import { AntDesign } from '@expo/vector-icons';  // For the "X" icon
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '../../config/FirebaseConfig'; // Import your Firebase config
 
 const AchievementsScreen = () => {
   const navigation = useNavigation();
@@ -15,7 +17,7 @@ const AchievementsScreen = () => {
       details: [
         "Total Volunteer Hours: 2", 
         "Next Milestone: 10 hours for the Neighborhood Hero badge", 
-        "You've contributed to 1 projects, helping 10+ people."
+        "You've contributed to 1 project, helping 10+ people."
       ],
       image: require("../../assets/images/star badge.png"),  // Sample image for each badge
     },
@@ -36,6 +38,35 @@ const AchievementsScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedBadge, setSelectedBadge] = useState(null);  // Store the selected badge
 
+  // State for total hours and projects
+  const [totalHours, setTotalHours] = useState(0);
+  const [totalProjects, setTotalProjects] = useState(0);
+
+  // Fetch completed projects and total hours
+  const fetchAchievementsData = async () => {
+    try {
+      const q = query(collection(db, 'JoinEvent'), where('eventdData.status', '==', 'accept'));
+      const querySnapshot = await getDocs(q);
+      let hours = 0;
+      let projects = 0;
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        hours += data.eventdData.hours; // Assuming 'hours' is a field in your JoinEvent collection
+        projects += 1; // Count each accepted event as a project
+      });
+
+      setTotalHours(hours);
+      setTotalProjects(projects);
+    } catch (error) {
+      console.error('Error fetching achievements data:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchAchievementsData(); // Fetch data when the component mounts
+  }, []);
+
   // When a badge is clicked, show the modal with the selected badge's content
   const handleBadgeClick = (badge) => {
     setSelectedBadge(badge);
@@ -51,6 +82,20 @@ const AchievementsScreen = () => {
         <Text style={styles.badgesCountTitle}>Total Badges Earned - {badges.length}</Text>
       </View>
 
+      {/* Stats Section */}
+      <View style={styles.statsContainer}>
+        <View style={styles.statItem}>
+          <Text style={styles.statTitle}>Total Hours</Text>
+          <Image source={require("../../assets/images/Time Machine.png")} style={styles.statImage} />
+          <Text style={styles.statNumber}>{totalHours}</Text>
+        </View>
+        <View style={styles.statItem}>
+          <Text style={styles.statTitle}>Projects Completed</Text>
+          <Image source={require("../../assets/images/Numbers.png")} style={styles.statImage} />
+          <Text style={styles.statNumber}>{totalProjects}</Text>
+        </View>
+      </View>
+
       {/* Badges Section */}
       <View style={styles.badgesContainer}>
         {badges.map((badge) => (
@@ -61,21 +106,6 @@ const AchievementsScreen = () => {
             </View>
           </TouchableOpacity>
         ))}
-      </View>
-
-      {/* Stats Section */}
-      <View style={styles.statsContainer}>
-        {/* Example stat items */}
-        <View style={styles.statItem}>
-          <Text style={styles.statTitle}> Total   Hours</Text>
-          <Image source={require("../../assets/images/Time Machine.png")} style={styles.statImage} />
-          <Text style={styles.statNumber}>10</Text>
-        </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statTitle}>  Projects Completed</Text>
-          <Image source={require("../../assets/images/Numbers.png")} style={styles.statImage} />
-          <Text style={styles.statNumber}>6</Text>
-        </View>
       </View>
 
       {/* Button to view new opportunities */}
