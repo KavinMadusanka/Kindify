@@ -22,6 +22,9 @@ export default function signupV() {
   const [message, setMessage] = React.useState("")
   const [errorMessage, setErrorMessage] = React.useState("");
   const [errorfirstName, setErrorfirstName] = React.useState("");
+  const [errorAddress, setErrorAddress] = React.useState("");
+  const [errorContact, setErrorContact] = React.useState("");
+  const [errorPassword, setErrorPassword] = React.useState("");
   const [role, setRole] = React.useState(0)
 
   const handleConfirmPassChange = (passw) => {
@@ -48,6 +51,18 @@ export default function signupV() {
     }
     if (!emailAddress) {
       return setErrorMessage("Email is required.");
+    }
+    if (!Address) {
+      return setErrorAddress("Address is required.");
+    }
+    if (!Contact) {
+      return setErrorContact("Contact No is required.");
+    }
+    if (!password) {
+      return setErrorPassword("Password is required.");
+    }
+    if (!ConfirmPass) {
+      return setMessage("Confirm password is required.");
     }
 
     try {
@@ -233,6 +248,9 @@ export default function signupV() {
                       />
               </View>
             </View>
+            {errorAddress ? (
+              <Text style={{ color: "red", marginTop: 5, paddingLeft:30 }}>{errorAddress}</Text>
+            ) : null}
             <View style={{
               marginTop:5,
               paddingLeft:15
@@ -263,6 +281,9 @@ export default function signupV() {
                       />
               </View>
             </View>
+            {errorContact ? (
+              <Text style={{ color: "red", marginTop: 5, paddingLeft:30 }}>{errorContact}</Text>
+            ) : null}
             <View style={{
               marginTop:5,
               paddingLeft:15
@@ -290,6 +311,9 @@ export default function signupV() {
                       />
               </View>
               </View>
+              {errorPassword ? (
+              <Text style={{ color: "red", marginTop: 5, paddingLeft:30 }}>{errorPassword}</Text>
+            ) : null}
               <View style={{
               marginTop:5,
               paddingLeft:15
@@ -362,7 +386,7 @@ export default function signupV() {
               width:'90%',
               color:"#16423C",
               borderRadius:14}}>
-                <TextInput value={code} placeholder="Code..." onChangeText={(code) => setCode(code)} />
+                <TextInput value={code} keyboardType='numeric' placeholder="Code..." onChangeText={(code) => setCode(code)} />
               </View>
               <View style={{
                     padding:4,
