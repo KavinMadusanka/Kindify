@@ -4,7 +4,7 @@ Kindify is a mobile application designed to connect volunteers with community se
 
 ## Features
 
-- **Volunteer Signup and Login: Users can register and log in with their details.
+- Volunteer Signup and Login: Users can register and log in with their details.
 - **Project Listings: Volunteers can view a list of available community service projects based on their preferences.
 - **Activity Tracking: Track completed volunteer hours and upcoming activities.
 - **Badges and Achievements: Earn badges for reaching specific volunteer hour milestones.
