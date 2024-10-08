@@ -89,7 +89,7 @@ export default function CreateEventScreen() {
                 date: date.toDateString(),
                 time: time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 location,
-                volunteerHours,
+                volunteerHours:parseInt(volunteerHours,10),
                 images,
             };
 
