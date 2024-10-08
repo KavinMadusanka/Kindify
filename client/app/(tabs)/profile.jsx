@@ -96,7 +96,7 @@ const Profile = () => {
       <View style={styles.profileContainer}>
         <Image
           style={styles.profileImage}
-          source={{ uri: user?.profileImageUrl || 'https://your-image-url' }} // User's profile image or fallback
+          source={{ uri: user?.imageUrl || 'https://your-image-url' }} // User's profile image or fallback
           onError={() => console.log('Error loading image')} // Handle image load error
         />
         <Text style={styles.profileName}>
