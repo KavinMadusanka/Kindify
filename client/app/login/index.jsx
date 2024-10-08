@@ -4,8 +4,13 @@ import { Link, Redirect, useRouter  } from 'expo-router'
 import React, { useEffect, useState } from 'react';
 import { db } from '../../config/FirebaseConfig';
 import { collection, query, where, getDocs } from 'firebase/firestore';
+import { useFonts } from 'expo-font';
 
 export default function LoginScreen() {
+    const [fontsLoaded] = useFonts({
+        'Outfit-Bold': require('../../assets/fonts/Outfit-Bold.ttf'),
+      });
+
     const { user } = useUser();
     const [userData, setUserData] = useState(null);
     const userEmail = user?.primaryEmailAddress?.emailAddress;
