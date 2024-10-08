@@ -173,11 +173,10 @@ const ProfileScreen = () => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.profileContainer}>
-        <Image
+      <Image
           style={styles.profileImage}
-          source={{
-            uri: userData.profileImage || 'https://your-default-image-url.com',
-          }}
+          source={{ uri: user?.imageUrl || 'https://your-image-url' }} // User's profile image or fallback
+          onError={() => console.log('Error loading image')} // Handle image load error
         />
         <Text style={styles.profileName}>{userData.firstName}</Text>
       </View>
