@@ -5,8 +5,13 @@ import { useRouter  } from 'expo-router'
 import { Checkbox } from 'react-native-paper';
 import { db } from '../../config/FirebaseConfig'; // Make sure to import your Firebase configuration
 import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { useFonts } from 'expo-font';
 
 export default function selectCategory() {
+    const [fontsLoaded] = useFonts({
+      'Outfit-Bold': require('../../assets/fonts/Outfit-Bold.ttf'),
+    });
+
     const { user } = useUser();
     const userEmail = user?.primaryEmailAddress?.emailAddress;
     const [userData, setUserData] = useState(null);
