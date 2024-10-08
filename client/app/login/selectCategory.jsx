@@ -8,9 +8,9 @@ import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/fire
 import { useFonts } from 'expo-font';
 
 export default function selectCategory() {
-    const [fontsLoaded] = useFonts({
-      'Outfit-Bold': require('../../assets/fonts/Outfit-Bold.ttf'),
-    });
+  const [fontsLoaded] = useFonts({
+    'Outfit-Medium':require('../../assets/fonts/Outfit-Medium.ttf'),
+  });
 
     const { user } = useUser();
     const userEmail = user?.primaryEmailAddress?.emailAddress;
@@ -122,7 +122,7 @@ export default function selectCategory() {
                     source={require('../../assets/images/Logo.png')} // Make sure the image path is correct
                     style={{ width: 150, height: 150, marginBottom: 20 }}
                 />
-                <Text style={{ fontSize: 24, color: '#16423C', fontWeight: 'bold', marginBottom: 20 }}>
+                <Text style={{ fontSize: 24, color: '#16423C', fontFamily:'Outfit-Medium', fontWeight: 'bold', marginBottom: 20 }}>
                     Select your preferences:
                 </Text>
             </View>
@@ -138,14 +138,14 @@ export default function selectCategory() {
                         onPress={() => handleCheckboxPress(category)}
                         color="#16423C"
                     />
-                    <Text style={{ fontSize: 18, color: '#16423C', marginLeft: 10 }}>
+                    <Text style={{ fontSize: 18, color: '#16423C', marginLeft: 10, fontFamily:'Outfit-Medium' }}>
                         {category}
                     </Text>
                 </Pressable>
             ))}
 
             <View style={styles.modalButtonContainer}>
-                <Button title="Submit" onPress={handleSubmit} />
+                <Button title="Submit" onPress={handleSubmit} style={{fontFamily:'Outfit-Medium'}}/>
             </View>
 
             {/* You can add a Submit button or continue navigation button if needed */}
