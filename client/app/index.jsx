@@ -1,10 +1,14 @@
-import { Link } from "expo-router";
+import { Link, Redirect, Stack, useRouter } from "expo-router";
 import { Text, View ,Image, Pressable} from "react-native";
 import { useAuth,useUser } from '@clerk/clerk-expo'
-import { Redirect, Stack, useRouter  } from 'expo-router'
 import { useEffect, useState } from 'react';
+import { useFonts } from 'expo-font';
 
 export default function Index() {
+
+  const [fontsLoaded] = useFonts({
+    'Outfit-Bold': require('./../assets/fonts/Outfit-Bold.ttf'),
+  });
 
   const { isSignedIn } = useAuth();
   const router = useRouter();
@@ -34,29 +38,12 @@ export default function Index() {
         backgroundColor:"#C4DAD2",
       }}
     >
-    <Link href={'(tabs)/home'}>
-      <Text style={{
-        // fontFamily:'outfit-bold',
-        fontSize:40,
-        color:"#16423C"
-      }}>Welcome</Text>
-      {/* <Image source={require('../assets/images/logo.jpg')} /> */}
-    </Link>
-      <Link href={'/login'}>
-        <Text>Go To Login Screen</Text>
-      </Link>
 
-      <Link href={'(Otabs)/home'}>
-      <Text style={{
-        // fontFamily:'outfit-bold',
-        fontSize:40,
-        color:"#16423C"
-      }}>Welcome</Text>
-      {/* <Image source={require('../assets/images/logo.jpg')} /> */}
-    </Link>
-      <Link href={'/login'}>
-        <Text>Go To Login Screen</Text>
-      </Link>
+        <Text style={{
+          fontFamily:'Outfit-Bold',
+          fontSize:40,
+          color:"#16423C"
+        }}>Welcome</Text>
     </View>
   );
 }

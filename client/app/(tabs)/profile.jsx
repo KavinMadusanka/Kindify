@@ -86,7 +86,7 @@ const Profile = () => {
       id: 5,
       name: 'Notifications',
       icon: Notification,
-      path: '/profile/notifications',
+      path: 'notification',
     },
   ];
 

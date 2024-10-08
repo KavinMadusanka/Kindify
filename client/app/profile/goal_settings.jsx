@@ -9,14 +9,14 @@ import { useUser } from '@clerk/clerk-expo'; // Import useUser hook
 
 // Import your images
 const images = {
-    'beach-cleaning': require('../../assets/images/Beach.png'),
-    'elderly-care': require('../../assets/images/eldery care.png'),
-    'food-security-&-distribution': require('../../assets/images/Food Donor.png'),
-    'fundraising-events': require('../../assets/images/Events.png'),
-    'blood-donation': require('../../assets/images/Drop Of Blood.png'),
-    'disaster-relief': require('../../assets/images/Devastating.png'),
-    'teaching-tutoring': require('../../assets/images/teaching.png'),
-    'animal-welfare-shelter-support': require('../../assets/images/Animal Shelter.png'),
+    'Beach-cleaning': require('../../assets/images/Beach.png'),
+    'Elderly-care': require('../../assets/images/eldery care.png'),
+    'Food-security-&-distribution': require('../../assets/images/Food Donor.png'),
+    'Fundraising-events': require('../../assets/images/Events.png'),
+    'Blood-donation': require('../../assets/images/Drop Of Blood.png'),
+    'Disaster-relief': require('../../assets/images/Devastating.png'),
+    'Teaching-tutoring': require('../../assets/images/teaching.png'),
+    'Animal-welfare-shelter-support': require('../../assets/images/Animal Shelter.png'),
 };
 
 const App = () => {
@@ -52,10 +52,18 @@ const App = () => {
 
     const closeModal = () => {
         setModalVisible(false);
+        resetForm(); // Clear the form when closing the modal
     };
 
     const closeSuccessModal = () => {
         setSuccessModalVisible(false);
+    };
+
+    const resetForm = () => {
+        setCategory('');
+        setMonth('');
+        setTargetHours(0);
+        setRemindersEnabled(false);
     };
 
     const submitGoal = async () => {
@@ -87,6 +95,19 @@ const App = () => {
         } catch (error) {
             console.error("Error saving goal: ", error);
         }
+
+        resetForm(); // Clear the form after submission
+    };
+
+    const getCurrentAndFutureMonths = () => {
+        const currentMonth = new Date().getMonth();
+        const months = [
+            "January", "February", "March", "April", "May", "June", 
+            "July", "August", "September", "October", "November", "December"
+        ];
+
+        // Only return months from the current one onward
+        return months.slice(currentMonth);
     };
 
     return (
@@ -110,8 +131,8 @@ const App = () => {
                         {/* Display image based on the category */}
                         <Image source={images[item.category]} style={styles.goalImage} />
                         <View style={styles.goalTextContainer}>
-                            <Text style={styles.goalText}>{item.category.replace(/-/g, ' ')}</Text>
-                            <Text style={styles.goalText}>{item.targetHours} hours in {item.month} Month</Text>
+                            <Text style={styles.goalText}>{item.category.replace(/-/g, ' ')} in {item.month} Month</Text>
+                            <Text style={styles.goalText}>{item.targetHours} hours</Text>
                         </View>
                     </View>
                 )}
@@ -141,14 +162,15 @@ const App = () => {
                                 style={styles.picker}
                                 onValueChange={(itemValue) => setCategory(itemValue)}
                             >
-                                <Picker.Item label="Beach Cleaning" value="beach-cleaning" />
-                                <Picker.Item label="Elderly Care" value="elderly-care" />
-                                <Picker.Item label="Food Security & Distribution" value="food-security-&-distribution" />
-                                <Picker.Item label="Fundraising Events" value="fundraising-events" />
-                                <Picker.Item label="Blood Donation" value="blood-donation" />
-                                <Picker.Item label="Disaster Relief" value="disaster-relief" />
-                                <Picker.Item label="Teaching & Tutoring" value="teaching-&-tutoring" />
-                                <Picker.Item label="Animal Welfare & Shelter Support" value="animal-welfare-shelter-support" />
+                                <Picker.Item label="Select category" value="" />
+                                <Picker.Item label="Beach Cleaning" value="Beach-cleaning" />
+                                <Picker.Item label="Elderly Care" value="Elderly-care" />
+                                <Picker.Item label="Food Security & Distribution" value="Food-security-&-distribution" />
+                                <Picker.Item label="Fundraising Events" value="Fundraising-events" />
+                                <Picker.Item label="Blood Donation" value="Blood-donation" />
+                                <Picker.Item label="Disaster Relief" value="Disaster-relief" />
+                                <Picker.Item label="Teaching & Tutoring" value="Teaching-tutoring" />
+                                <Picker.Item label="Animal Welfare & Shelter Support" value="Animal-welfare-shelter-support" />
                             </Picker>
                         </View>
 
@@ -160,18 +182,10 @@ const App = () => {
                                 style={styles.picker}
                                 onValueChange={(itemValue) => setMonth(itemValue)}
                             >
-                                <Picker.Item label="January" value="january" />
-                                <Picker.Item label="February" value="february" />
-                                <Picker.Item label="March" value="march" />
-                                <Picker.Item label="April" value="april" />
-                                <Picker.Item label="May" value="may" />
-                                <Picker.Item label="June" value="june" />
-                                <Picker.Item label="July" value="july" />
-                                <Picker.Item label="August" value="august" />
-                                <Picker.Item label="September" value="september" />
-                                <Picker.Item label="October" value="october" />
-                                <Picker.Item label="November" value="november" />
-                                <Picker.Item label="December" value="december" />
+                                <Picker.Item label="Select month" value="" />
+                                {getCurrentAndFutureMonths().map((monthName, index) => (
+                                    <Picker.Item key={index} label={monthName} value={monthName} />
+                                ))}
                             </Picker>
                         </View>
 
@@ -211,7 +225,7 @@ const App = () => {
                 <View style={styles.modalContainer}>
                     <View style={styles.modalView}>
                         <Text style={styles.successTitle}>Success!</Text>
-                        <Text>Your goal has been added successfully.</Text>
+                        <Text style={{ marginBottom: 20 }}>Your goal has been added successfully.</Text>
 
                         {/* Close Button */}
                         <Button title="Close" onPress={closeSuccessModal} />

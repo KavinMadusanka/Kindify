@@ -4,8 +4,18 @@ import { Link, Redirect, useRouter  } from 'expo-router'
 import React, { useEffect, useState } from 'react';
 import { db } from '../../config/FirebaseConfig';
 import { collection, query, where, getDocs } from 'firebase/firestore';
+import { useFonts } from 'expo-font';
+import * as SplashScreen from 'expo-splash-screen';
+
+SplashScreen.preventAutoHideAsync();
 
 export default function LoginScreen() {
+    const [fontsLoaded] = useFonts({
+      'Outfit-Bold': require('../../assets/fonts/Outfit-Bold.ttf'),
+      'Outfit-Regular':require('../../assets/fonts/Outfit-Regular.ttf'),
+      'Outfit-Medium':require('../../assets/fonts/Outfit-Medium.ttf'),
+    });
+
     const { user } = useUser();
     const [userData, setUserData] = useState(null);
     const userEmail = user?.primaryEmailAddress?.emailAddress;
@@ -81,7 +91,7 @@ export default function LoginScreen() {
     
           if (signInAttempt.status === 'complete') {
             await setActive({ session: signInAttempt.createdSessionId });
-            fetchUserData(emailAddress);
+            // fetchUserData(emailAddress);
             // if(userData.role == 0){
             //     if(userData.category == null){
             //         router.replace('/login/selectCategory')
@@ -101,6 +111,8 @@ export default function LoginScreen() {
           console.error(JSON.stringify(err, null, 2))
         }
       }, [isLoaded, emailAddress, password])
+
+      SplashScreen.hideAsync();
 
   return (
     <KeyboardAvoidingView
@@ -134,6 +146,7 @@ export default function LoginScreen() {
                 }}>
                 <Text style={{
                     fontSize:20,
+                    fontFamily:'Outfit-Medium',
                     paddingLeft:15,
                     color:"#16423C"
                     }}>Email :</Text>
@@ -152,7 +165,7 @@ export default function LoginScreen() {
                         autoCapitalize="none"
                         value={emailAddress}
                         placeholder="Email..."
-                        style={{color:"#16423C"}}
+                        style={{color:"#16423C",fontFamily:'Outfit-Medium',}}
                         placeholderTextColor="#16423C"
                         onChangeText={(emailAddress) => setEmailAddress(emailAddress)}
                     />
@@ -165,6 +178,7 @@ export default function LoginScreen() {
                 }}>
                 <Text style={{
                     fontSize:20,
+                    fontFamily:'Outfit-Medium',
                     paddingLeft:15,
                     color:"#16423C"
                     }}>Password :</Text>
@@ -182,25 +196,30 @@ export default function LoginScreen() {
                 <TextInput
                     value={password}
                     placeholder="Password..."
-                    style={{color:"#16423C"}}
+                    style={{color:"#16423C",fontFamily:'Outfit-Medium',}}
                     placeholderTextColor="#16423C"
                     secureTextEntry={true}
                     onChangeText={(password) => setPassword(password)}
                 />
                 </View>
-                <View style={{
-                    padding:4,
+                <Pressable onPress={onSignInPress} style={{
+                    padding:10,
                     marginTop:40,
                     backgroundColor:'#E9EFEC',
                     width:'40%',
                     color:"#16423C",
                     borderRadius:14}}>
-                    <Button title="Log in" onPress={onSignInPress} color="#16423C"/>
-                </View>
+                      <Text style={{
+                        fontSize:20,
+                        fontFamily:'Outfit-Medium',
+                        textAlign:'center',
+                        color:"#16423C"
+                    }}>Log in</Text>
+                </Pressable>
             </View>
         </View>
         <View>
-            {/* <SignedIn>
+            {/* <SignedIn> 16423C
                 <Text>Hello {user?.emailAddresses[0].emailAddress}</Text>
             </SignedIn> */}
             <SignedOut>
@@ -212,7 +231,7 @@ export default function LoginScreen() {
                     
                     }}>
                         <Link href="/login/select">
-                            <Text style={{fontFamily:'outfit-bold',color:"#16423C"}}>Create an Account ? Click Here.</Text>
+                            <Text style={{fontFamily:'Outfit-Bold',color:"#16423C"}}>Create an Account ? Click Here.</Text>
                         </Link>
                 </View>
                     
