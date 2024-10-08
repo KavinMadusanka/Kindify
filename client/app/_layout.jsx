@@ -2,6 +2,10 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SecureStore from 'expo-secure-store'
 import { ClerkProvider, ClerkLoaded } from '@clerk/clerk-expo';
+import * as SplashScreen from 'expo-splash-screen';
+
+SplashScreen.preventAutoHideAsync();
+
 
 const tokenCache = {
   async getToken(key) {
@@ -30,11 +34,11 @@ const tokenCache = {
 
 export default function RootLayout() {
 
-  // useFonts({
-  //   'outfit':require('./../assets/fonts/Outfit-Regular.ttf'),
-  //   'outfit-medium':require('./../assets/fonts/Outfit-Medium.ttf'),
-  //   'outfit-bold':require('./../assets/fonts/Outfit-Bold.ttf')
-  // })
+  useFonts({
+    'Outfit-Regular':require('../assets/fonts/Outfit-Regular.ttf'),
+    'Outfit-Medium':require('../assets/fonts/Outfit-Medium.ttf'),
+    'Outfit-Bold':require('../assets/fonts/Outfit-Bold.ttf')
+  })
   const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY
 
   // if (!publishableKey) {
@@ -43,6 +47,8 @@ export default function RootLayout() {
   //   )
   // }
 
+  SplashScreen.hideAsync();
+  
   return (
     
     <ClerkProvider 
