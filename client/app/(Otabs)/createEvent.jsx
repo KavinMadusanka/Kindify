@@ -110,9 +110,14 @@ export default function CreateEventScreen() {
                 <RNPickerSelect
                     onValueChange={(value) => setCategory(value)}
                     items={[
-                        { label: 'Beach Cleanup', value: 'beach_cleanup' },
-                        { label: 'Blood Donation', value: 'blood_donation' },
-                        { label: 'Elderly Care', value: 'elderly_care' },
+                        { label: 'Beach Cleanup', value: 'Beach Clean' },
+                        { label: 'Blood Donation', value: 'Blood Donation' },
+                        { label: 'Elderly Care', value: 'Elderly Care' },
+                        { label: 'Food Security & Distribution', value: 'Food Security & Distribution' },
+                        { label: 'Fundraising Events', value: 'Fundraising Events' },
+                        { label: 'Disaster Relief', value: 'Disaster Relief' },
+                        { label: 'Teaching & Tutoringf', value: 'Teaching & Tutoring' },
+                        { label: 'Animal Welfare & Shelter Support', value: 'Animal Welfare & Shelter Support' },
                     ]}
                     style={{
                         inputIOS: styles.textInputDropdown,
@@ -183,14 +188,21 @@ export default function CreateEventScreen() {
 
             {/* Purpose */}
             <View style={styles.inputContainer}>
-                <Image source={PurposeIcon} style={styles.icon} />
-                <TextInput
-                    style={styles.textInput}
-                    placeholder="Volunteer Hours"
-                    value={volunteerHours}
-                    onChangeText={setVolunteerHours}
-                />
-            </View>
+  <Image source={PurposeIcon} style={styles.icon} />
+  <TextInput
+    style={styles.textInput}
+    placeholder="Enter Volunteer hours" // Default placeholder text
+    value={volunteerHours}
+    onChangeText={(text) => {
+      // Allow only numbers in the input field
+      if (/^\d*$/.test(text)) {
+        setVolunteerHours(text); // Update the state only with numeric values
+      }
+    }}
+    keyboardType="numeric" // Shows a numeric keypad
+  />
+</View>
+
 
             {/* Image Upload */}
             <View style={styles.uploadImageContainer}>
