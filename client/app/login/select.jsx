@@ -1,8 +1,14 @@
 import React from 'react'
 import { View, Text,  Image, Pressable } from 'react-native'
 import { Link } from 'expo-router'
+import { useFonts } from 'expo-font';
 
 export default function select() {
+    const [fontsLoaded] = useFonts({
+        'Outfit-Bold': require('../../assets/fonts/Outfit-Bold.ttf'),
+        'Outfit-Regular':require('../../assets/fonts/Outfit-Regular.ttf'),
+        'Outfit-Medium':require('../../assets/fonts/Outfit-Medium.ttf'),
+      });
   return (
     <View style={{
         flex: 1,
@@ -27,6 +33,7 @@ export default function select() {
             }}>
             <Text style={{
                 fontSize:20,
+                fontFamily:'Outfit-Medium',
                 paddingLeft:15,
                 color:"#16423C"
                 }}>Registered As :</Text>
@@ -44,6 +51,7 @@ export default function select() {
                 <Link href="/login/signupV">
                     <Text style={{
                         fontSize:20,
+                        fontFamily:'Outfit-Medium',
                         textAlign:'center',
                         color:"#16423C"
                     }}>Volunteer</Text>
@@ -63,6 +71,7 @@ export default function select() {
                 <Link href="/login/signupO">
                     <Text style={{
                         fontSize:20,
+                        fontFamily:'Outfit-Medium',
                         textAlign:'center',
                         color:"#16423C"
                     }}>Organization</Text>
@@ -76,7 +85,7 @@ export default function select() {
                 marginTop:100,
                 }}>
             <Link href="/login">
-                <Text style={{fontFamily:'outfit-bold',color:"#16423C"}}>Already Have an account ? Click Here.</Text>
+                <Text style={{fontFamily:'Outfit-Bold',color:"#16423C"}}>Already Have an account ? Click Here.</Text>
             </Link>
         </View>
     </View>
