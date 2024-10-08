@@ -7,7 +7,7 @@ import { useFonts } from 'expo-font';
 export default function Index() {
 
   const [fontsLoaded] = useFonts({
-    'Outfit-Bold': require('../assets/fonts/Outfit-Bold.ttf'),
+    'Outfit-Bold': require('./../assets/fonts/Outfit-Bold.ttf'),
   });
 
   const { isSignedIn } = useAuth();
@@ -40,7 +40,7 @@ export default function Index() {
     >
 
         <Text style={{
-          // fontFamily:'outfit-bold',
+          fontFamily:'Outfit-Bold',
           fontSize:40,
           color:"#16423C"
         }}>Welcome</Text>
