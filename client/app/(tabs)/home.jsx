@@ -81,13 +81,16 @@ export default function home() {
       );
       setFilteredEvents(filtered);
     } else {
-      const filtered = events.filter((event) =>{
-        const serachCategory = searchQuery ? searchQuery.toLowerCase() : '';
+      const filtered = events.filter((event) => {
+        const searchCategory = searchQuery.toLowerCase();
+        const eventCategory = event.category ? event.category.toLowerCase() : '';
+        const eventName = event.name ? event.name.toLowerCase() : '';
         const userCategories = Array.isArray(userData.category) 
           ? userData.category.map((category) => category.toLowerCase()) 
           : [];
 
-          return userCategories.includes(serachCategory);
+          return ( userCategories.includes(eventCategory) && (eventCategory.includes(searchCategory) || eventName.includes(searchCategory)));
+          // return userCategories.includes(searchCategory);
       }
         // event.category.toLowerCase().includes(searchQuery.toLowerCase())
       );
@@ -163,8 +166,8 @@ export default function home() {
 
   const JoinEvent = async (eventData) => {
     try {
-      console.log(eventData);
-      console.log(userEmail);
+      // console.log(eventData);
+      // console.log(userEmail);
       const eventdData = {category: eventData.category,
         emailAddress: userEmail,
         status: status,
@@ -228,7 +231,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: '#E9EFEC',
     borderRadius: 15,
     marginBottom: 20,
     padding: 15,
@@ -243,6 +246,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 10,
+    color:'#16423C',
   },
   cardContent: {
     flex: 1,
