@@ -26,6 +26,7 @@ const ProfileScreen = () => {
   const userEmail = user?.primaryEmailAddress?.emailAddress;
 
   const [userData, setUserData] = useState(null);
+  const [profileImageUrl, setProfileImageUrl] = useState(''); // State for profile image URL
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
 
@@ -55,6 +56,7 @@ const ProfileScreen = () => {
           return;
         }
 
+        // Fetch user data
         const userQuery = query(
           collection(db, 'users'),
           where('emailAddress', '==', userEmail)
@@ -68,6 +70,21 @@ const ProfileScreen = () => {
           setCategories(userDoc.category || []);
         } else {
           console.log('No such user document!');
+        }
+
+        // Fetch profile image URL
+        const profileImageQuery = query(
+          collection(db, 'profileImages'),
+          where('userEmail', '==', userEmail)
+        );
+
+        const imageSnapshot = await getDocs(profileImageQuery);
+
+        if (!imageSnapshot.empty) {
+          const imageDoc = imageSnapshot.docs[0].data();
+          setProfileImageUrl(imageDoc.profileImageUrl); // Set profile image URL
+        } else {
+          console.log('No profile image found for this user.');
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
@@ -173,9 +190,9 @@ const ProfileScreen = () => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.profileContainer}>
-      <Image
+        <Image
           style={styles.profileImage}
-          source={{ uri: user?.imageUrl || 'https://your-image-url' }} // User's profile image or fallback
+          source={{ uri: profileImageUrl || 'https://your-default-image-url' }} // Use fetched profile image URL or fallback
           onError={() => console.log('Error loading image')} // Handle image load error
         />
         <Text style={styles.profileName}>{userData.firstName}</Text>
@@ -303,7 +320,7 @@ const styles = StyleSheet.create({
   profileImage: {
     width: 120,
     height: 120,
-    borderRadius: 50,
+    borderRadius: 100,
     borderWidth: 2,
     borderColor: '#FFF',
   },
