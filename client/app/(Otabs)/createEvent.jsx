@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#E6F2F0',
     paddingHorizontal: 20, // Added more horizontal padding for better spacing
-    paddingTop: 75,
+    paddingTop: 0,
   },
   inputContainer: {
     flexDirection: 'row',
