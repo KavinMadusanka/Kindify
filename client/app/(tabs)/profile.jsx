@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { Link } from 'expo-router';
 import { useUser, useAuth } from '@clerk/clerk-expo';
-import { query, collection, where, getDocs } from 'firebase/firestore'; // Firestore methods
+import { query, collection, where, getDocs, setDoc, doc, getDoc } from 'firebase/firestore'; // Firestore methods
 import { db } from '../../config/FirebaseConfig'; // Firebase config
+import * as ImagePicker from 'expo-image-picker'; // Import Image Picker
+import Icon from 'react-native-vector-icons/MaterialIcons'; // Import icon
 
 // Import images
 const Customer = require('../../assets/images/Customer.png');
@@ -20,6 +22,8 @@ const Profile = () => {
 
   // Local state to hold Firestore data
   const [firstName, setFirstName] = useState('');
+  const [profileImage, setProfileImage] = useState('');
+  const [imageUploading, setImageUploading] = useState(false); // Loading state for image upload
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -45,8 +49,91 @@ const Profile = () => {
       }
     };
 
+    const fetchProfileImage = async () => {
+      if (userEmail) {
+        const imageDocRef = doc(db, 'profileImages', userEmail);
+        const docSnapshot = await getDoc(imageDocRef); // Use getDoc instead of getDocs
+
+        if (docSnapshot.exists()) {
+          const imageData = docSnapshot.data();
+          if (imageData.profileImageUrl) {
+            setProfileImage(imageData.profileImageUrl); // Set the fetched profile image
+          }
+        }
+      }
+    };
+
     fetchUserData(); // Fetch user data when the component mounts
+    fetchProfileImage(); // Fetch profile image
   }, [userEmail]);
+
+  const pickImage = async () => {
+    try {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (!permissionResult.granted) {
+        Alert.alert('Permission to access camera roll is required!');
+        return;
+      }
+
+      if (imageUploading) {
+        Alert.alert('Image is still uploading. Please wait.');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1], // Ensuring square image
+        quality: 1,
+      });
+
+      if (result.canceled) {
+        console.log('User cancelled image picker');
+        return; // Early exit if user cancels
+      }
+
+      if (result.assets && result.assets.length > 0) {
+        const pickedImageUri = result.assets[0]?.uri; // Safely access uri
+
+        if (!pickedImageUri) {
+          console.error('No image URI found');
+          Alert.alert('No image selected. Please try again.');
+          return;
+        }
+
+        setImageUploading(true); // Set loading state
+
+        // Convert image to Base64
+        const response = await fetch(pickedImageUri);
+        const blob = await response.blob();
+        const reader = new FileReader();
+
+        reader.onloadend = async () => {
+          const base64data = reader.result; // Base64 image string
+          setProfileImage(base64data); // Set the profile image preview
+
+          // Store the image and user email in Firestore
+          const imageDocRef = doc(db, 'profileImages', userEmail); // Create a document with the user's email
+          await setDoc(imageDocRef, {
+            userEmail: userEmail, // Store user email
+            profileImageUrl: base64data // Store the profile image URL
+          }); // Update or create the document
+
+          Alert.alert('Profile picture uploaded successfully!');
+        };
+        reader.readAsDataURL(blob);
+      } else {
+        console.error('No image selected');
+        Alert.alert('Failed to select an image. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      Alert.alert('Failed to upload image. Please try again.');
+    } finally {
+      setImageUploading(false); // Remove loading state
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -94,11 +181,16 @@ const Profile = () => {
     <ScrollView style={styles.container}>
       {/* Profile Image and Name */}
       <View style={styles.profileContainer}>
-        <Image
-          style={styles.profileImage}
-          source={{ uri: user?.imageUrl || 'https://your-image-url' }} // User's profile image or fallback
-          onError={() => console.log('Error loading image')} // Handle image load error
-        />
+        <View style={styles.imageContainer}>
+          <Image
+            style={styles.profileImage}
+            source={{ uri: profileImage || user?.imageUrl || 'https://your-image-url' }} // User's profile image or fallback
+            onError={() => console.log('Error loading image')} // Handle image load error
+          />
+          <TouchableOpacity style={styles.iconButton} onPress={pickImage}>
+            <Icon name="photo-camera" size={30} color="#007bff" />
+          </TouchableOpacity>
+        </View>
         <Text style={styles.profileName}>
           {firstName || 'Your Name'}  {/* First name from Firestore */}
         </Text>
@@ -134,6 +226,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 30,
   },
+  imageContainer: {
+    alignItems: 'center',
+    position: 'relative', // Enable absolute positioning for the icon
+  },
   profileImage: {
     width: 120,
     height: 120,
@@ -151,6 +247,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginTop: 5,
     color: '#666', // Grey text
+  },
+  iconButton: {
+    position: 'absolute',
+    bottom: 3, // Adjust to position it below the image
+    right: -10, // Position it to the right of the image
   },
   card: {
     flexDirection: 'row', // Icon and text side by side
@@ -182,7 +283,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     marginTop: 10,
-    marginBottom:30
+    marginBottom: 30,
   },
   logoutText: {
     fontSize: 16,
