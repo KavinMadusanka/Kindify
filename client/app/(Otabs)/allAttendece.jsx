@@ -1,12 +1,10 @@
 import { View, Text } from 'react-native'
 import React from 'react'
 
-const profile = () => {
+export default function allAttendece() {
   return (
     <View>
-      <Text>profile</Text>
+      <Text>allAttendece</Text>
     </View>
   )
 }
-
-export default profile
