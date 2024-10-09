@@ -11,6 +11,11 @@ const MonthlyActivityOverview = () => {
   const [totalAttended, setTotalAttended] = useState(0);
   const [loading, setLoading] = useState(true); // To show a loading state
 
+  // Colors for each category
+  const colorPalette = [
+    '#c0392b', '#e74c3c', '#f39c12', '#f1c40f', '#2ecc71', '#27ae60', '#3498db', '#2980b9', '#af7ac5', '#7d3c98'
+  ];
+  
   // Function to fetch and process activities
   const fetchActivities = async () => {
     try {
@@ -42,6 +47,15 @@ const MonthlyActivityOverview = () => {
         // Ensure the event is within the current month and year
         if (eventDate.getMonth() === currentMonth && eventDate.getFullYear() === currentYear) {
           const category = data.category.toLowerCase(); // Use category as the key
+          monthlyData[category] = (monthlyData[category] || 0) + 1; // Count the number of events per category
+        }
+      });
+
+      // Format data for PieChart with predefined colors
+      const formattedData = Object.keys(monthlyData).map((key, index) => ({
+        name: key.charAt(0).toUpperCase() + key.slice(1), // Capitalize category names
+        count: monthlyData[key],
+        color: colorPalette[index % colorPalette.length], // Cycle through the color palette
           monthlyData[category] = (monthlyData[category] || 0) + data.hours; // Sum hours for each category
         }
       });
@@ -56,6 +70,7 @@ const MonthlyActivityOverview = () => {
       }));
 
       setActivityData(formattedData);
+      setTotalAttended(Object.values(monthlyData).reduce((a, b) => a + b, 0)); // Calculate total events attended
       setTotalAttended(Object.values(monthlyData).reduce((a, b) => a + b, 0)); // Calculate total hours
       setLoading(false); // Stop loading spinner
     } catch (error) {
@@ -91,6 +106,18 @@ const MonthlyActivityOverview = () => {
     <ScrollView style={styles.container}>
       <Text style={styles.title}>Monthly Activity Overview</Text>
 
+      {/* Centered Pie Chart Section */}
+      <View style={styles.chartContainer}>
+        {activityData.length > 0 ? (
+          <PieChart
+            data={activityData.map((activity) => ({
+              name: activity.name,
+              count: activity.count,
+              color: activity.color,
+              legendFontColor: '#7F7F7F',
+              legendFontSize: 15,
+            }))}
+            
       {/* Pie Chart Section */}
       <View style={styles.chartContainer}>
         {activityData.length > 0 ? (
@@ -108,6 +135,7 @@ const MonthlyActivityOverview = () => {
                 borderRadius: 16,
               },
             }}
+            accessor="count"
             accessor="hours"
             backgroundColor="transparent"
             paddingLeft="15"
@@ -123,12 +151,27 @@ const MonthlyActivityOverview = () => {
         <Text style={styles.tableTitle}>Activity Summary</Text>
         <View style={styles.table}>
           <View style={styles.tableRow}>
+            <Text style={styles.tableHeader}>Color</Text>
+            <Text style={styles.tableHeader}>Activity</Text>
+            <Text style={styles.tableHeader}>Times Attended</Text>
             <Text style={styles.tableHeader}>Activity</Text>
             <Text style={styles.tableHeader}>Hours Attended</Text>
             <Text style={styles.tableHeader}>Percentage</Text>
           </View>
           {activityData.map((activity) => (
             <View style={styles.tableRow} key={activity.name}>
+
+              {/* Add a colored box for the color guide */}
+              <View
+                style={[
+                  styles.colorBox,
+                  { backgroundColor: activity.color },
+                ]}
+              />
+              <Text style={styles.tableCell}>{activity.name}</Text>
+              <Text style={styles.tableCell}>{activity.count}</Text>
+              <Text style={styles.tableCell}>
+                {((activity.count / totalAttended) * 100).toFixed(0)}%
               <Text style={styles.tableCell}>{activity.name}</Text>
               <Text style={styles.tableCell}>{activity.hours}</Text>
               <Text style={styles.tableCell}>
@@ -155,6 +198,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   chartContainer: {
+    alignItems: 'center', // Center the pie chart
+    justifyContent: 'center', // Center the pie chart
     alignItems: 'center',
     marginBottom: 20,
   },
@@ -184,10 +229,16 @@ const styles = StyleSheet.create({
   },
   tableHeader: {
     fontWeight: 'bold',
+    textAlign: 'center',
   },
   tableCell: {
     flex: 1,
     textAlign: 'center',
+  },
+  colorBox: {
+    width: 20,
+    height: 20,
+    marginRight: 10,
   },
   loadingContainer: {
     flex: 1,
