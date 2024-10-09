@@ -15,7 +15,7 @@ const MonthlyActivityOverview = () => {
   const colorPalette = [
     '#c0392b', '#e74c3c', '#f39c12', '#f1c40f', '#2ecc71', '#27ae60', '#3498db', '#2980b9', '#af7ac5', '#7d3c98'
   ];
-  
+
   // Function to fetch and process activities
   const fetchActivities = async () => {
     try {
@@ -56,37 +56,17 @@ const MonthlyActivityOverview = () => {
         name: key.charAt(0).toUpperCase() + key.slice(1), // Capitalize category names
         count: monthlyData[key],
         color: colorPalette[index % colorPalette.length], // Cycle through the color palette
-          monthlyData[category] = (monthlyData[category] || 0) + data.hours; // Sum hours for each category
-        }
-      });
-
-      // Format data for PieChart
-      const formattedData = Object.keys(monthlyData).map((key) => ({
-        name: key.charAt(0).toUpperCase() + key.slice(1), // Capitalize category names
-        hours: monthlyData[key],
-        color: getRandomColor(),
         legendFontColor: '#7F7F7F',
         legendFontSize: 15,
       }));
 
       setActivityData(formattedData);
       setTotalAttended(Object.values(monthlyData).reduce((a, b) => a + b, 0)); // Calculate total events attended
-      setTotalAttended(Object.values(monthlyData).reduce((a, b) => a + b, 0)); // Calculate total hours
       setLoading(false); // Stop loading spinner
     } catch (error) {
       console.error('Error fetching activities:', error);
       setLoading(false); // Stop loading spinner in case of error
     }
-  };
-
-  // Utility to generate random colors for chart slices
-  const getRandomColor = () => {
-    const letters = '0123456789ABCDEF';
-    let color = '#';
-    for (let i = 0; i < 6; i++) {
-      color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
   };
 
   useEffect(() => {
@@ -117,12 +97,6 @@ const MonthlyActivityOverview = () => {
               legendFontColor: '#7F7F7F',
               legendFontSize: 15,
             }))}
-            
-      {/* Pie Chart Section */}
-      <View style={styles.chartContainer}>
-        {activityData.length > 0 ? (
-          <PieChart
-            data={activityData}
             width={300}
             height={200}
             chartConfig={{
@@ -136,7 +110,6 @@ const MonthlyActivityOverview = () => {
               },
             }}
             accessor="count"
-            accessor="hours"
             backgroundColor="transparent"
             paddingLeft="15"
             absolute // Show absolute values on the pie chart
@@ -154,13 +127,10 @@ const MonthlyActivityOverview = () => {
             <Text style={styles.tableHeader}>Color</Text>
             <Text style={styles.tableHeader}>Activity</Text>
             <Text style={styles.tableHeader}>Times Attended</Text>
-            <Text style={styles.tableHeader}>Activity</Text>
-            <Text style={styles.tableHeader}>Hours Attended</Text>
             <Text style={styles.tableHeader}>Percentage</Text>
           </View>
           {activityData.map((activity) => (
             <View style={styles.tableRow} key={activity.name}>
-
               {/* Add a colored box for the color guide */}
               <View
                 style={[
@@ -172,10 +142,6 @@ const MonthlyActivityOverview = () => {
               <Text style={styles.tableCell}>{activity.count}</Text>
               <Text style={styles.tableCell}>
                 {((activity.count / totalAttended) * 100).toFixed(0)}%
-              <Text style={styles.tableCell}>{activity.name}</Text>
-              <Text style={styles.tableCell}>{activity.hours}</Text>
-              <Text style={styles.tableCell}>
-                {((activity.hours / totalAttended) * 100).toFixed(0)}%
               </Text>
             </View>
           ))}
@@ -200,7 +166,6 @@ const styles = StyleSheet.create({
   chartContainer: {
     alignItems: 'center', // Center the pie chart
     justifyContent: 'center', // Center the pie chart
-    alignItems: 'center',
     marginBottom: 20,
   },
   tableContainer: {
@@ -248,3 +213,4 @@ const styles = StyleSheet.create({
 });
 
 export default MonthlyActivityOverview;
+ 
