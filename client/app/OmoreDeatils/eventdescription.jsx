@@ -3,6 +3,7 @@ import { View, Text, Image, StyleSheet, ActivityIndicator, ScrollView } from 're
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../config/FirebaseConfig'; 
 import { useRoute } from '@react-navigation/native';
+import { Link } from 'expo-router'; // Import Link for navigation
 
 const EventDescription = () => {
   const [event, setEvent] = useState(null);
@@ -86,9 +87,13 @@ const EventDescription = () => {
         <View style={styles.attendanceButton}>
           <Text style={styles.buttonText}>Attendance</Text>
         </View>
-        <View style={styles.iconButton}>
+        {/* Edit Button with navigation to update form */}
+        <Link
+          href={`./updateFormDetails?id=${event.id}`} // Pass event ID in the URL for the edit form
+          style={styles.iconButton}
+        >
           <Text style={styles.iconText}>✏️</Text>
-        </View>
+        </Link>
       </View>
     </ScrollView>
   );
