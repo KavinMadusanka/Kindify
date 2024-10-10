@@ -68,7 +68,7 @@ const SkillDevelopmentTracker = () => {
         if (categories) {
           const hours = parseFloat(data.hours) || 0; // Ensure hours is a number, defaulting to 0 if undefined
           categories.forEach((skill) => {
-            updatedSkillData[skill] = Math.min(100, updatedSkillData[skill] + (hours * 2)); // Increment percentage
+            updatedSkillData[skill] = Math.min(100, updatedSkillData[skill] + (hours * 3)); // Increment percentage
           });
         } else {
           console.warn("No skill mapping found for category:", normalizedCategory);
