@@ -171,6 +171,7 @@ export default function home() {
       const eventdData = {category: eventData.category,
         emailAddress: userEmail,
         status: status,
+        eventId: eventData.id,
         date: eventData.date,
         hours: eventData.volunteerHours, };
       await addDoc(collection(db, 'JoinEvent'), {eventdData,
