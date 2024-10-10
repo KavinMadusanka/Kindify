@@ -27,7 +27,7 @@ export default function Activities() {
           </TouchableOpacity>
         </Link>
 
-        <Link href="/activities/skill_development_tracker" asChild>
+        <Link href="/activities/skill_development_traker" asChild>
           <TouchableOpacity style={styles.card}>
             <Image source={SkillTrackerIcon} style={styles.icon} />
             <Text style={styles.cardText}>Skill Development Tracker</Text>
