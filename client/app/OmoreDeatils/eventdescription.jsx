@@ -105,9 +105,13 @@ const EventDescription = () => {
         </TouchableOpacity>
 
         {/* Attendance Button */}
-        <View style={styles.attendanceButton}>
-          <Text style={styles.buttonText}>Attendance</Text>
-        </View>
+          <Link
+            href={`./attendance?id=${event.id}`} // Pass event ID in the URL for the attendance
+          >
+            <View style={styles.attendanceButton}>
+              <Text style={styles.buttonText}>Attendance</Text>
+            </View>
+          </Link>
 
         {/* Edit Button with navigation to update form */}
         <Link
