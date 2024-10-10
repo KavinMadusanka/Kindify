@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
-import { useUser } from '@clerk/clerk-expo'; // Clerk for user management
+import { useUser } from '@clerk/clerk-expo';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../../config/FirebaseConfig'; // Your Firebase configuration
-import { AnimatedCircularProgress } from 'react-native-circular-progress'; // Import circular progress component
+import { db } from '../../config/FirebaseConfig';
+import { AnimatedCircularProgress } from 'react-native-circular-progress';
 
 const SkillDevelopmentTracker = () => {
   const { user } = useUser();
@@ -17,7 +17,6 @@ const SkillDevelopmentTracker = () => {
   const [loading, setLoading] = useState(true);
   const [totalSkillPercentage, setTotalSkillPercentage] = useState(0);
 
-  // Skill mapping for each category (all lowercase to match normalized category)
   const categorySkillsMapping = {
     'beach clean': ['communication', 'teamwork'],
     'elderly care': ['adaptability', 'communication'],
@@ -29,7 +28,6 @@ const SkillDevelopmentTracker = () => {
     'animal welfare & shelter support': ['adaptability', 'communication'],
   };
 
-  // Function to fetch and process skill development data
   const fetchSkillDevelopmentData = async () => {
     try {
       const currentUserEmail = user?.primaryEmailAddress?.emailAddress;
@@ -48,7 +46,6 @@ const SkillDevelopmentTracker = () => {
 
       const querySnapshot = await getDocs(q);
 
-      // Reset skill data for calculation
       const updatedSkillData = {
         communication: 0,
         teamwork: 0,
@@ -57,26 +54,21 @@ const SkillDevelopmentTracker = () => {
         timeManagement: 0,
       };
 
-      // Normalize category and calculate skill percentages based on event hours
       querySnapshot.forEach((doc) => {
         const data = doc.data().eventdData;
-        
+
         if (!data || !data.category) {
           console.warn("Event data or category is missing", data);
-          return; // Skip this iteration if data or category is missing
+          return;
         }
 
-        // Normalize the category name (convert to lowercase and trim spaces)
         const normalizedCategory = data.category.trim().toLowerCase();
-        console.log('Normalized Category:', normalizedCategory); // Log normalized category for debugging
-
-        // Map category to its respective skills
         const categories = categorySkillsMapping[normalizedCategory];
-        
+
         if (categories) {
-          const hours = data.hours || 0;
+          const hours = parseFloat(data.hours) || 0; // Ensure hours is a number, defaulting to 0 if undefined
           categories.forEach((skill) => {
-            updatedSkillData[skill] = Math.min(100, updatedSkillData[skill] + (hours * 3.5)); // Increment percentage based on hours
+            updatedSkillData[skill] = Math.min(100, updatedSkillData[skill] + (hours * 2)); // Increment percentage
           });
         } else {
           console.warn("No skill mapping found for category:", normalizedCategory);
@@ -85,8 +77,12 @@ const SkillDevelopmentTracker = () => {
 
       setSkillData(updatedSkillData);
 
-      // Calculate total skill percentage
-      const totalPercentage = Object.values(updatedSkillData).reduce((total, percentage) => total + percentage, 0) / Object.keys(updatedSkillData).length;
+      // Calculate total percentage only for skills with non-zero values
+      const totalCategories = Object.values(updatedSkillData).filter(value => value > 0).length;
+      const totalPercentage = totalCategories
+        ? Object.values(updatedSkillData).reduce((total, percentage) => total + percentage, 0) / totalCategories
+        : 0;
+
       setTotalSkillPercentage(totalPercentage);
       setLoading(false);
     } catch (error) {
@@ -99,12 +95,11 @@ const SkillDevelopmentTracker = () => {
     fetchSkillDevelopmentData();
   }, [user]);
 
-  // Helper function to convert camelCase or other strings into Title Case
   const toTitleCase = (str) => {
     return str
-      .replace(/([A-Z])/g, ' $1') // Add space before capital letters
-      .replace(/\b\w/g, (char) => char.toUpperCase()) // Capitalize first letter of each word
-      .trim(); // Remove extra spaces
+      .replace(/([A-Z])/g, ' $1')
+      .replace(/\b\w/g, (char) => char.toUpperCase())
+      .trim();
   };
 
   if (loading) {
@@ -120,7 +115,6 @@ const SkillDevelopmentTracker = () => {
     <ScrollView style={styles.container}>
       <Text style={styles.title}>Skill Development Tracker</Text>
 
-      {/* Horizontal Progress Bars for Each Skill */}
       {Object.entries(skillData).map(([skill, percentage]) => (
         <View key={skill} style={styles.progressContainer}>
           <Text style={styles.skillTitle}>{toTitleCase(skill)}</Text>
@@ -131,20 +125,17 @@ const SkillDevelopmentTracker = () => {
         </View>
       ))}
 
-      {/* Box for Overall Skill Development Level */}
       <View style={styles.cornerRadiusBox}>
-        {/* Label for Overall Skill Development Level */}
-        <Text style={styles.overallLabel}>Overall Skill Development Level</Text> 
+        <Text style={styles.overallLabel}>Overall Skill Development Level</Text>
 
-        {/* Circular Progress Bar */}
         <AnimatedCircularProgress
-          size={150} // Reduced size for the circle
-          width={25} // Increased width for a thicker stroke
-          fill={totalSkillPercentage} // Percentage to fill the circle
-          tintColor='#6A9C89' // Green for filled part
-          backgroundColor='#E9EFEC' // Light grey for empty part
-          lineCap="round" // Makes the stroke end with rounded edges
-          duration={1000} // Animation duration
+          size={150}
+          width={25}
+          fill={Math.max(0, Math.min(100, totalSkillPercentage))} // Ensures fill is between 0 and 100
+          tintColor='#6A9C89'
+          backgroundColor='#E9EFEC'
+          lineCap="round"
+          duration={1000}
         >
           {() => (
             <Text style={styles.circularText}>{Math.round(totalSkillPercentage)}%</Text>
@@ -169,8 +160,8 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   cornerRadiusBox: {
-    borderRadius: 15, // Adjust corner radius
-    backgroundColor: '#FFFFFF', // White background for the box
+    borderRadius: 15,
+    backgroundColor: '#FFFFFF',
     padding: 20,
     shadowColor: '#000',
     shadowOffset: {
@@ -179,27 +170,22 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.25,
     shadowRadius: 4,
-    elevation: 5, // Elevation for Android
-    alignItems: 'center',
-    marginTop: 20, // Space above the box
-  },
-  circularProgressContainer: {
+    elevation: 5,
     alignItems: 'center',
     marginTop: 20,
-    marginBottom: 40, // Additional space for better alignment
   },
   circularText: {
     position: 'absolute',
-    fontSize: 24, // Decreased font size to fit inside the circle better
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#333',
     textAlign: 'center',
-    top: '40%', // Center the text vertically inside the circular progress bar
-    left: '40%', // Center the text horizontally
+    top: '40%',
+    left: '33%',
   },
   overallLabel: {
     fontSize: 18,
-    marginBottom: 20, // Space between label and circular progress bar
+    marginBottom: 20,
     fontWeight: 'bold',
     color: '#333',
     textAlign: 'center',
