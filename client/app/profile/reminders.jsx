@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
     },
     reminderText: {
-        fontSize: 14,
+        fontSize: 15,
         flex: 1,  // Make text take available space
     },
     iconButton: {

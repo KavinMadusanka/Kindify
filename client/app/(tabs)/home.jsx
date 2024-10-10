@@ -1,15 +1,17 @@
-import { View, Text, Button, ScrollView, Image, FlatList, TextInput, StyleSheet } from 'react-native'
+import { View, Text, Button, ScrollView, Image, FlatList, TextInput, StyleSheet, Pressable, Alert } from 'react-native'
 import React, { useEffect, useState } from 'react'
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { addDoc, collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '../../config/FirebaseConfig';
 import { useAuth, useUser } from '@clerk/clerk-expo';
 import { Link } from 'expo-router';
 
 export default function home() {
   const { signOut } = useAuth();  // Get the signOut method from Clerk
-  const { isSignedIn } = useAuth()
+  const { isSignedIn } = useAuth();
+  const [event, setEvent] = useState(null);
   const { user } = useUser();
   const [userData, setUserData] = useState([]);
+  const [status, setStatus] = useState("pendding")
   const userEmail = user?.primaryEmailAddress?.emailAddress;
 
   const [events, setEvents] = useState([]);
@@ -40,9 +42,7 @@ export default function home() {
     } catch (error) {
       console.error('Error fetching user data:', error);
     } 
-    // finally {
-    //   setLoading(false);
-    // }
+    fetchUserData();
   };
 
   // Fetch events from Firestore
@@ -54,13 +54,16 @@ export default function home() {
     });
     setEvents(eventsData);
     setFilteredEvents(eventsData);
+    fetchEvents();
   };
 
   useEffect(() => {
-    fetchUserData();
     fetchEvents();
   }, []);
 
+  useEffect(() => {
+    fetchUserData();
+  }, []);
   // useEffect(() => {
     
 // }, [userEmail, isSignedIn]);
@@ -78,13 +81,16 @@ export default function home() {
       );
       setFilteredEvents(filtered);
     } else {
-      const filtered = events.filter((event) =>{
-        const serachCategory = searchQuery ? searchQuery.toLowerCase() : '';
+      const filtered = events.filter((event) => {
+        const searchCategory = searchQuery.toLowerCase();
+        const eventCategory = event.category ? event.category.toLowerCase() : '';
+        const eventName = event.name ? event.name.toLowerCase() : '';
         const userCategories = Array.isArray(userData.category) 
           ? userData.category.map((category) => category.toLowerCase()) 
           : [];
 
-          return userCategories.includes(serachCategory);
+          return ( userCategories.includes(eventCategory) && (eventCategory.includes(searchCategory) || eventName.includes(searchCategory)));
+          // return userCategories.includes(searchCategory);
       }
         // event.category.toLowerCase().includes(searchQuery.toLowerCase())
       );
@@ -127,15 +133,59 @@ export default function home() {
         <Text style={styles.eventLocation}>{item.location}</Text>
         <Text style={styles.eventDate}>{item.date}</Text>
         {/* Navigate to event details page */}
-        <Link
-          href={`/OmoreDeatils/eventdescription?id=${item.id}`} // Pass the event ID in the URL
+        <Pressable
+        onPress={() => fetchEventDetails(item.id)}
+          // href={`/OmoreDeatils/eventdescription?id=${item.id}`} // Pass the event ID in the URL
           style={styles.moreDetailsButton}
         >
-          <Text style={styles.moreDetailsText}>More Details</Text>
-        </Link>
+          <Text style={styles.moreDetailsText}>Join Event</Text>
+        </Pressable>
       </View>
     </View>
   );
+
+  const fetchEventDetails = async (id) => {
+    if (id) {
+      const docRef = doc(db, 'events', id);
+      const docSnap = await getDoc(docRef);
+      
+      if (docSnap.exists()) {
+        setEvent({ id: docSnap.id, ...docSnap.data() });
+        // JoinEvent(event);
+      } else {
+        console.log('No such document!');
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (event) {
+      JoinEvent(event); // Call JoinEvent only when event data is available
+    }
+  }, [event]);
+
+  const JoinEvent = async (eventData) => {
+    try {
+      // console.log(eventData);
+      // console.log(userEmail);
+      const eventdData = {category: eventData.category,
+        emailAddress: userEmail,
+        status: status,
+        eventId: eventData.id,
+        date: eventData.date,
+        hours: eventData.volunteerHours, };
+      await addDoc(collection(db, 'JoinEvent'), {eventdData,
+        // userId: userId,     // Store the user ID
+        joinedAt: new Date(), // Store the timestamp
+      });
+  
+      // You can add more fields if needed, like event details, user details, etc.
+      Alert.alert('Adding Event','Event added successful!');
+      console.log('Successfully joined the event!');
+    } catch (error) {
+      console.error('Error joining the event: ', error);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -143,6 +193,7 @@ export default function home() {
     <TextInput
       style={styles.searchBar}
       placeholder="Search by Category..." 
+      color='#16423C'
       value={searchQuery}
       onChangeText={(text) => setSearchQuery(text)}
     />
@@ -169,10 +220,11 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
   searchBar: {
-    backgroundColor: '#fff',
+    backgroundColor: '#E9EFEC',
     padding: 10,
     borderRadius: 25, // Rounded edges for the search bar
     margin: 15,
+    color:'#16423C',
     borderColor: '#C4DAD2', // Light green border
     borderWidth: 1,
   },
@@ -180,7 +232,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: '#E9EFEC',
     borderRadius: 15,
     marginBottom: 20,
     padding: 15,
@@ -195,6 +247,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 10,
+    color:'#16423C',
   },
   cardContent: {
     flex: 1,
