@@ -131,25 +131,25 @@ const SkillDevelopmentTracker = () => {
         </View>
       ))}
 
-      {/* Circular Progress for Overall Skill Level */}
-      <View style={styles.circularProgressContainer}>
+      {/* Box for Overall Skill Development Level */}
+      <View style={styles.cornerRadiusBox}>
         {/* Label for Overall Skill Development Level */}
         <Text style={styles.overallLabel}>Overall Skill Development Level</Text> 
 
         {/* Circular Progress Bar */}
         <AnimatedCircularProgress
-            size={150} // Reduced size for the circle
-            width={25} // Increased width for a thicker stroke
-            fill={totalSkillPercentage} // Percentage to fill the circle
-            tintColor='#6A9C89' // Green for filled part
-            backgroundColor='#E9EFEC' // Light grey for empty part
-            lineCap="round" // Makes the stroke end with rounded edges
-            duration={1000} // Animation duration
-          >
-            {() => (
-              <Text style={styles.circularText}>{Math.round(totalSkillPercentage)}%</Text>
-            )}
-          </AnimatedCircularProgress>
+          size={150} // Reduced size for the circle
+          width={25} // Increased width for a thicker stroke
+          fill={totalSkillPercentage} // Percentage to fill the circle
+          tintColor='#6A9C89' // Green for filled part
+          backgroundColor='#E9EFEC' // Light grey for empty part
+          lineCap="round" // Makes the stroke end with rounded edges
+          duration={1000} // Animation duration
+        >
+          {() => (
+            <Text style={styles.circularText}>{Math.round(totalSkillPercentage)}%</Text>
+          )}
+        </AnimatedCircularProgress>
       </View>
     </ScrollView>
   );
@@ -168,6 +168,21 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#333',
   },
+  cornerRadiusBox: {
+    borderRadius: 15, // Adjust corner radius
+    backgroundColor: '#FFFFFF', // White background for the box
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5, // Elevation for Android
+    alignItems: 'center',
+    marginTop: 20, // Space above the box
+  },
   circularProgressContainer: {
     alignItems: 'center',
     marginTop: 20,
@@ -181,8 +196,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     top: '40%', // Center the text vertically inside the circular progress bar
     left: '40%', // Center the text horizontally
-    //transform: [{ translateX: -50 }, { translateY: -50 }], // Offset to align in the center
-},
+  },
   overallLabel: {
     fontSize: 18,
     marginBottom: 20, // Space between label and circular progress bar
