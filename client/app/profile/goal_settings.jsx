@@ -4,19 +4,19 @@ import { Picker } from '@react-native-picker/picker';
 import Slider from '@react-native-community/slider';
 import Icon from '@expo/vector-icons/MaterialIcons';
 import { db } from '../../config/FirebaseConfig';  // Import your firebase configuration
-import { collection, addDoc, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, addDoc, query, where, onSnapshot, getDocs } from 'firebase/firestore';
 import { useUser } from '@clerk/clerk-expo'; // Import useUser hook
 
 // Import your images
 const images = {
-    'Beach-cleaning': require('../../assets/images/Beach.png'),
-    'Elderly-care': require('../../assets/images/eldery care.png'),
-    'Food-security-&-distribution': require('../../assets/images/Food Donor.png'),
-    'Fundraising-events': require('../../assets/images/Events.png'),
-    'Blood-donation': require('../../assets/images/Drop Of Blood.png'),
-    'Disaster-relief': require('../../assets/images/Devastating.png'),
-    'Teaching-tutoring': require('../../assets/images/teaching.png'),
-    'Animal-welfare-shelter-support': require('../../assets/images/Animal Shelter.png'),
+    'Beach-Clean': require('../../assets/images/Beach.png'),
+    'Elderly-Care': require('../../assets/images/eldery care.png'),
+    'Food-Security-&-Distribution': require('../../assets/images/Food Donor.png'),
+    'Fundraising-Events': require('../../assets/images/Events.png'),
+    'Blood-Donation': require('../../assets/images/Drop Of Blood.png'),
+    'Disaster-Relief': require('../../assets/images/Devastating.png'),
+    'Teaching-&-Tutoring': require('../../assets/images/teaching.png'),
+    'Animal-Welfare-Shelter-Support': require('../../assets/images/Animal Shelter.png'),
 };
 
 const App = () => {
@@ -25,6 +25,7 @@ const App = () => {
     const [modalVisible, setModalVisible] = useState(false);
     const [successModalVisible, setSuccessModalVisible] = useState(false);
     const [goals, setGoals] = useState([]);
+    const [categories, setCategories] = useState([]); // State for user categories
     const [category, setCategory] = useState('');
     const [month, setMonth] = useState('');
     const [targetHours, setTargetHours] = useState(0);
@@ -44,6 +45,33 @@ const App = () => {
         });
 
         return () => unsubscribe();
+    }, [userEmail]);
+
+    // Fetch user-specific categories
+    useEffect(() => {
+        const fetchUserCategories = async () => {
+            try {
+                const userRef = collection(db, "users");
+                const userQuery = query(userRef, where("emailAddress", "==", userEmail)); 
+                
+                const querySnapshot = await getDocs(userQuery);
+                
+                if (!querySnapshot.empty) {
+                    querySnapshot.forEach((doc) => {
+                        const userData = doc.data();
+                        if (Array.isArray(userData.category)) {
+                            setCategories(userData.category); // Assuming the category is stored as an array
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error("Error fetching user categories: ", error);
+            }
+        };
+
+        if (userEmail) {
+            fetchUserCategories();
+        }
     }, [userEmail]);
 
     const openModal = () => {
@@ -163,14 +191,9 @@ const App = () => {
                                 onValueChange={(itemValue) => setCategory(itemValue)}
                             >
                                 <Picker.Item label="Select category" value="" />
-                                <Picker.Item label="Beach Cleaning" value="Beach-cleaning" />
-                                <Picker.Item label="Elderly Care" value="Elderly-care" />
-                                <Picker.Item label="Food Security & Distribution" value="Food-security-&-distribution" />
-                                <Picker.Item label="Fundraising Events" value="Fundraising-events" />
-                                <Picker.Item label="Blood Donation" value="Blood-donation" />
-                                <Picker.Item label="Disaster Relief" value="Disaster-relief" />
-                                <Picker.Item label="Teaching & Tutoring" value="Teaching-tutoring" />
-                                <Picker.Item label="Animal Welfare & Shelter Support" value="Animal-welfare-shelter-support" />
+                                {categories.map((cat, index) => (
+                                    <Picker.Item key={index} label={cat} value={cat.replace(/ /g, '-')}/> // Replace spaces with hyphens
+                                ))}
                             </Picker>
                         </View>
 
@@ -237,114 +260,114 @@ const App = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-      flex: 1,
-      padding: 20,
-      backgroundColor: '#E7EFEF',
-  },
-  subHeader: {
-      fontSize: 18,
-      textAlign: 'center',
-      marginBottom: 20,
-      fontWeight: 'bold',
-  },
-  addGoalButton: {
-      backgroundColor: '#fff',
-      padding: 15,
-      borderRadius: 8,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginBottom: 10,
-      borderColor: '#ccc',
-      borderWidth: 1,
-  },
-  addGoalText: {
-      fontSize: 16,
-  },
-  goalsHeader: {
-      fontSize: 17,
-      fontWeight: 'bold',
-      marginTop: 20,
-  },
-  goalItem: {
-      paddingBottom:20,
-      paddingTop:20,
-      paddingLeft:10,
-      marginVertical: 5,
-      backgroundColor: '#fff',
-      borderRadius: 20,
-      borderColor: '#ccc',
-      borderWidth: 1,
-      flexDirection: 'row',
-      alignItems: 'center',
-  },
-  goalTextContainer: {
-      marginLeft: 10,
-  },
-  goalText: {
-      fontSize: 15,
-  },
-  goalImage: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-  },
-  modalContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  modalView: {
-      backgroundColor: '#fff',
-      padding: 20,
-      borderRadius: 10,
-      width: '90%',
-      maxHeight: 500,
-      justifyContent: 'center',
-      position: 'relative',
-  },
-  modalTitle: {
-      fontSize: 20,
-      fontWeight: 'bold',
-      marginBottom: 15,
-  },
-  successTitle: {
-      fontSize: 20,
-      fontWeight: 'bold',
-      marginBottom: 10,
-      textAlign: 'center',
-  },
-  closeButton: {
-      position: 'absolute',
-      top: 10,
-      right: 10,
-  },
-  pickerBox: {
-      height: 50,
-      backgroundColor: '#f9f9f9',
-      borderWidth: 1,
-      borderColor: '#ccc',
-      borderRadius: 8,
-      marginBottom: 15,
-      justifyContent: 'center',
-  },
-  picker: {
-      height: 30,
-      width: '100%',
-  },
-  slider: {
-      width: '100%',
-      height: 40,
-      marginBottom: 15,
-  },
-  reminderRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 20,
-  },
-});
-
-export default App;
+    container: {
+        flex: 1,
+        padding: 20,
+        backgroundColor: '#E7EFEF',
+    },
+    subHeader: {
+        fontSize: 18,
+        textAlign: 'center',
+        marginBottom: 20,
+        fontWeight: 'bold',
+    },
+    addGoalButton: {
+        backgroundColor: '#fff',
+        padding: 15,
+        borderRadius: 8,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 10,
+        borderColor: '#ccc',
+        borderWidth: 1,
+    },
+    addGoalText: {
+        fontSize: 16,
+    },
+    goalsHeader: {
+        fontSize: 17,
+        fontWeight: 'bold',
+        marginTop: 20,
+    },
+    goalItem: {
+        paddingBottom:20,
+        paddingTop:20,
+        paddingLeft:10,
+        marginVertical: 5,
+        backgroundColor: '#fff',
+        borderRadius: 20,
+        borderColor: '#ccc',
+        borderWidth: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    goalTextContainer: {
+        marginLeft: 10,
+    },
+    goalText: {
+        fontSize: 15,
+    },
+    goalImage: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalView: {
+        backgroundColor: '#fff',
+        padding: 20,
+        borderRadius: 10,
+        width: '90%',
+        maxHeight: 500,
+        justifyContent: 'center',
+        position: 'relative',
+    },
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 15,
+    },
+    successTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 10,
+        textAlign: 'center',
+    },
+    closeButton: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+    },
+    pickerBox: {
+        height: 50,
+        backgroundColor: '#f9f9f9',
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 8,
+        marginBottom: 15,
+        justifyContent: 'center',
+    },
+    picker: {
+        height: 30,
+        width: '100%',
+    },
+    slider: {
+        width: '100%',
+        height: 40,
+        marginBottom: 15,
+    },
+    reminderRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+  });
+  
+  export default App;

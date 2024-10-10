@@ -1,40 +1,141 @@
-import React, { useState } from "react";
-import { StyleSheet, View, Text, Image, TouchableOpacity, Modal } from "react-native";
+import React, { useState, useEffect } from "react";
+import { StyleSheet, View, Text, Image, TouchableOpacity, Modal ,ScrollView} from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import { AntDesign } from '@expo/vector-icons';  // For the "X" icon
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '../../config/FirebaseConfig'; // Import your Firebase config
 
 const AchievementsScreen = () => {
   const navigation = useNavigation();
 
-  // Hardcoded values for badges
-  const [badges, setBadges] = useState([
-    { 
-      id: 1, 
-      name: "Star Badge", 
-      description: "Congratulations on completing your first volunteer activity.", 
-      details: [
-        "Total Volunteer Hours: 2", 
-        "Next Milestone: 10 hours for the Neighborhood Hero badge", 
-        "You've contributed to 1 projects, helping 10+ people."
-      ],
-      image: require("../../assets/images/star badge.png"),  // Sample image for each badge
-    },
-    { 
-      id: 2, 
-      name: "Hero Badge", 
-      description: "Congratulations on reaching an important milestone! The Star badge is awarded to volunteers who have logged 10 hours of community service. Your dedication to making a difference in your community is truly commendable!", 
-      details: [
-        "Total Volunteer Hours: 10",
-        "Next Milestone: 50 hours for Superhero badge",
-        "You've impacted 20+ people in your community."
-      ],
-      image: require("../../assets/images/hero badge.png"),
-    },
-  ]);
-
   // State for modal visibility and content
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedBadge, setSelectedBadge] = useState(null);  // Store the selected badge
+
+  // State for total hours and projects
+  const [totalHours, setTotalHours] = useState(0);
+  const [totalProjects, setTotalProjects] = useState(0);
+
+  // State for earned badges
+  const [badges, setBadges] = useState([]);
+
+  // Fetch completed projects and total hours
+  const fetchAchievementsData = async () => {
+    try {
+      const q = query(collection(db, 'JoinEvent'), where('eventdData.status', '==', 'accept'));
+      const querySnapshot = await getDocs(q);
+      let hours = 0;
+      let projects = 0;
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        hours += data.eventdData.hours; // Assuming 'hours' is a field in your JoinEvent collection
+        projects += 1; // Count each accepted event as a project
+      });
+
+      setTotalHours(hours);
+      setTotalProjects(projects);
+
+      // Check conditions for badges
+      awardBadges(hours, projects);
+
+    } catch (error) {
+      console.error('Error fetching achievements data:', error);
+    }
+  };
+
+  // Function to award badges based on conditions
+  const awardBadges = (hours, projects) => {
+    const newBadges = [];
+  
+    if (hours >= 10) {
+      newBadges.push({
+        id: 1, // Unique ID for Star Badge
+        name: "Star Badge",
+        description: "Congratulations! You've logged 10 volunteer hours.",
+        details: [
+          "Total Volunteer Hours: 10",
+          "Keep up the great work to reach new milestones!",
+          "Next milestone: 50 hours for the Super Star badge.",
+        ],
+        image: require("../../assets/images/star badge.png"),
+      });
+    }
+  
+    if (hours >= 50) {
+      newBadges.push({
+        id: 2, // Unique ID for Super Star Badge
+        name: "Super Star Badge",
+        description: "Amazing! You've logged 50 volunteer hours.",
+        details: [
+          "Total Volunteer Hours: 50",
+          "Your dedication is truly commendable!",
+          "Next milestone: 80 hours for the Galaxy badge.",
+        ],
+        image: require("../../assets/images/super star badge.png"),
+      });
+    }
+  
+    if (hours >= 80) {
+      newBadges.push({
+        id: 3, // Unique ID for Galaxy Badge
+        name: "Galaxy Badge",
+        description: "Amazing! You've logged 80 volunteer hours.",
+        details: [
+          "Total Volunteer Hours: 80",
+          "Your dedication is truly commendable!",
+        ],
+        image: require("../../assets/images/galaxy badge.png"),
+      });
+    }
+  
+    if (projects >= 10) {
+      newBadges.push({
+        id: 4, // Unique ID for Hero Badge
+        name: "Hero Badge",
+        description: "Congratulations! You've completed 10 volunteer events.",
+        details: [
+          "Total Projects: 10",
+          "Keep up the great work to reach new milestones!",
+          "Next milestone: Complete 30 volunteer events for the Super Hero badge.",
+        ],
+        image: require("../../assets/images/hero badge.png"),
+      });
+    }
+  
+    if (projects >= 30) {
+      newBadges.push({
+        id: 5, // Unique ID for Super Hero Badge
+        name: "Super Hero Badge",
+        description: "Outstanding! You've completed 30 projects.",
+        details: [
+          "Total Projects: 30",
+          "You're making a huge impact in your community!",
+          "Next milestone: Complete 50 volunteer events for the Community Helper badge.",
+        ],
+        image: require("../../assets/images/super hero badge.png"),
+      });
+    }
+  
+    if (projects >= 50) {
+      newBadges.push({
+        id: 6, // Unique ID for Community Helper Badge
+        name: "Community Helper Badge",
+        description: "Outstanding! You've completed 50 projects.",
+        details: [
+          "Total Projects: 50",
+          "You're making a huge impact in your community!",
+        ],
+        image: require("../../assets/images/community helper.png"),
+      });
+    }
+  
+    setBadges(newBadges);
+  };  
+
+  useEffect(() => {
+    fetchAchievementsData(); // Fetch data when the component mounts
+  }, []);
 
   // When a badge is clicked, show the modal with the selected badge's content
   const handleBadgeClick = (badge) => {
@@ -43,6 +144,7 @@ const AchievementsScreen = () => {
   };
 
   return (
+    <ScrollView>
     <View style={styles.container}>
       <Text style={styles.subtitle}>Celebrate Your Impact</Text>
 
@@ -65,16 +167,15 @@ const AchievementsScreen = () => {
 
       {/* Stats Section */}
       <View style={styles.statsContainer}>
-        {/* Example stat items */}
         <View style={styles.statItem}>
           <Text style={styles.statTitle}> Total   Hours</Text>
           <Image source={require("../../assets/images/Time Machine.png")} style={styles.statImage} />
-          <Text style={styles.statNumber}>10</Text>
+          <Text style={styles.statNumber}>{totalHours}</Text>
         </View>
         <View style={styles.statItem}>
-          <Text style={styles.statTitle}>  Projects Completed</Text>
+          <Text style={styles.statTitle}>    Events Completed</Text>
           <Image source={require("../../assets/images/Numbers.png")} style={styles.statImage} />
-          <Text style={styles.statNumber}>6</Text>
+          <Text style={styles.statNumber}>{totalProjects}</Text>
         </View>
       </View>
 
@@ -137,7 +238,8 @@ const AchievementsScreen = () => {
           </View>
         </View>
       </Modal>
-    </View>
+      </View>
+      </ScrollView>
   );
 };
 
@@ -166,7 +268,7 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 10,
   },
   badgesCountTitle: {
     fontSize: 18,
@@ -174,11 +276,14 @@ const styles = StyleSheet.create({
   },
   badgesContainer: {
     flexDirection: "row",
+    flexWrap: 'wrap',           // Allow items to wrap to the next line
+    justifyContent: 'space-around', // Add space between badges in a row
     marginVertical: 20,
   },
   badge: {
     alignItems: "center",
     marginHorizontal: 15,
+    marginBottom:10
   },
   badgeImage: {
     width: 80,
@@ -190,6 +295,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     width: "100%",
     marginVertical: 35,
+    marginTop:10
   },
   statItem: {
     alignItems: "center",
@@ -198,7 +304,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     width: 140,
     elevation: 5,
-    height: 300,
+    height: 320,
   },
   statImage: {
     width: 120,
@@ -211,7 +317,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   statNumber: {
-    fontSize: 22,
+    fontSize: 36,
     fontWeight: "bold",
     marginTop: 5,
   },
@@ -221,6 +327,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 5,
     marginTop: 30,
+    marginBottom:50,
   },
   buttonText: {
     color: "white",

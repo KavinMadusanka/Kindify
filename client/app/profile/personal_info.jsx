@@ -10,6 +10,7 @@ import {
   Button,
   Alert,
   Modal,
+  Switch,
 } from 'react-native';
 import { useUser } from '@clerk/clerk-expo';
 import { db } from '../../config/FirebaseConfig';
@@ -25,15 +26,27 @@ const ProfileScreen = () => {
   const userEmail = user?.primaryEmailAddress?.emailAddress;
 
   const [userData, setUserData] = useState(null);
+  const [profileImageUrl, setProfileImageUrl] = useState(''); // State for profile image URL
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
 
   const [updatedName, setUpdatedName] = useState('');
   const [updatedAddress, setUpdatedAddress] = useState('');
   const [updatedContact, setUpdatedContact] = useState('');
-  const [updatedCategories, setUpdatedCategories] = useState('');
+  const [updatedCategories, setUpdatedCategories] = useState([]);
 
   const [modalVisible, setModalVisible] = useState(false);
+
+  const availableCategories = [
+    'Beach Clean',
+    'Elderly Care',
+    'Food Security & Distribution',
+    'Fundraising Events',
+    'Blood Donation',
+    'Disaster Relief',
+    'Teaching & Tutoring',
+    'Animal Welfare & Shelter Support',
+  ];
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -43,6 +56,7 @@ const ProfileScreen = () => {
           return;
         }
 
+        // Fetch user data
         const userQuery = query(
           collection(db, 'users'),
           where('emailAddress', '==', userEmail)
@@ -56,6 +70,21 @@ const ProfileScreen = () => {
           setCategories(userDoc.category || []);
         } else {
           console.log('No such user document!');
+        }
+
+        // Fetch profile image URL
+        const profileImageQuery = query(
+          collection(db, 'profileImages'),
+          where('userEmail', '==', userEmail)
+        );
+
+        const imageSnapshot = await getDocs(profileImageQuery);
+
+        if (!imageSnapshot.empty) {
+          const imageDoc = imageSnapshot.docs[0].data();
+          setProfileImageUrl(imageDoc.profileImageUrl); // Set profile image URL
+        } else {
+          console.log('No profile image found for this user.');
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
@@ -92,7 +121,7 @@ const ProfileScreen = () => {
       if (updatedName) updates.firstName = updatedName;
       if (updatedAddress) updates.Address = updatedAddress;
       if (updatedContact) updates.Contact = updatedContact;
-      if (updatedCategories) updates.category = updatedCategories.split(',').map(cat => cat.trim());
+      if (updatedCategories.length > 0) updates.category = updatedCategories;
 
       if (Object.keys(updates).length > 0) {
         await updateDoc(userDocRef, updates);
@@ -114,13 +143,21 @@ const ProfileScreen = () => {
     setUpdatedName(userData.firstName);
     setUpdatedAddress(userData.Address);
     setUpdatedContact(userData.Contact);
-    setUpdatedCategories(categories.join(', '));
+    setUpdatedCategories(categories);
     setModalVisible(true);
   };
 
   const handleSubmit = () => {
     handleUpdate();
     setModalVisible(false);
+  };
+
+  const handleCategoryChange = (category) => {
+    if (updatedCategories.includes(category)) {
+      setUpdatedCategories(updatedCategories.filter((cat) => cat !== category));
+    } else {
+      setUpdatedCategories([...updatedCategories, category]);
+    }
   };
 
   const handleDeleteAccount = async () => {
@@ -155,9 +192,8 @@ const ProfileScreen = () => {
       <View style={styles.profileContainer}>
         <Image
           style={styles.profileImage}
-          source={{
-            uri: userData.profileImage || 'https://your-default-image-url.com',
-          }}
+          source={{ uri: profileImageUrl || 'https://your-default-image-url' }} // Use fetched profile image URL or fallback
+          onError={() => console.log('Error loading image')} // Handle image load error
         />
         <Text style={styles.profileName}>{userData.firstName}</Text>
       </View>
@@ -211,40 +247,45 @@ const ProfileScreen = () => {
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.modalView}>
-          <Text style={styles.modalTitle}>Update Your Information</Text>
-          <Text style={styles.modalTitlee}>Full Name</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Name"
-            value={updatedName}
-            onChangeText={setUpdatedName}
-          />
-          <Text style={styles.modalTitlee}>Address</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Address"
-            value={updatedAddress}
-            onChangeText={setUpdatedAddress}
-          />
-          <Text style={styles.modalTitlee}>Contact Number</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Contact"
-            value={updatedContact}
-            onChangeText={setUpdatedContact}
-            keyboardType="phone-pad"
-          />
-          <Text style={styles.modalTitlee}>Preferred volunteer categories</Text>
-          <TextInput
-            style={styles.inputt}
-            placeholder="Categories (comma-separated)"
-            value={updatedCategories}
-            onChangeText={setUpdatedCategories}
-          />
-          <View style={styles.modalButtonContainer}>
-            <Button title="Submit" onPress={handleSubmit} />
-            <Button title="Cancel" onPress={() => setModalVisible(false)} />
-          </View>
+          <ScrollView contentContainerStyle={styles.scrollViewContent}>
+            <Text style={styles.modalTitle}>Update Your Information</Text>
+            <Text style={styles.modalTitlee}>Full Name</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Name"
+              value={updatedName}
+              onChangeText={setUpdatedName}
+            />
+            <Text style={styles.modalTitlee}>Address</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Address"
+              value={updatedAddress}
+              onChangeText={setUpdatedAddress}
+            />
+            <Text style={styles.modalTitlee}>Contact Number</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Contact"
+              value={updatedContact}
+              onChangeText={setUpdatedContact}
+              keyboardType="phone-pad"
+            />
+            <Text style={styles.modalTitlee}>Preferred volunteer categories</Text>
+            {availableCategories.map((category) => (
+              <View key={category} style={styles.checkboxContainer}>
+                <Switch
+                  value={updatedCategories.includes(category)}
+                  onValueChange={() => handleCategoryChange(category)}
+                />
+                <Text style={styles.categoryLabel}>{category}</Text>
+              </View>
+            ))}
+            <View style={styles.modalButtonContainer}>
+              <Button title="Submit" onPress={handleSubmit} />
+              <Button title="Cancel" onPress={() => setModalVisible(false)} />
+            </View>
+          </ScrollView>
         </View>
       </Modal>
     </ScrollView>
@@ -279,7 +320,7 @@ const styles = StyleSheet.create({
   profileImage: {
     width: 120,
     height: 120,
-    borderRadius: 50,
+    borderRadius: 100,
     borderWidth: 2,
     borderColor: '#FFF',
   },
@@ -331,6 +372,16 @@ const styles = StyleSheet.create({
     color: '#000',
     marginBottom: 5,
   },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  categoryLabel: {
+    marginLeft: 8,
+    fontSize: 16,
+    color: '#000',
+  },
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
@@ -340,37 +391,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     width: 350,
   },
-  inputt: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    padding: 10,
-    marginBottom: 15,
-    backgroundColor: '#fff',
-    width: 350,
-    height: 100,
-  },
   modalView: {
     flex: 1,
     justifyContent: 'center',
     backgroundColor: '#D5E5E4',
     padding: 20,
   },
-  modallView: {
-    margin: 20, // Add some margin around the modal
-    marginTop:300,
-    backgroundColor: '#D5E4E4',
-    padding: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 5,
-    width: '90%', // Set width as needed
-    maxHeight: '100%', // Limit the height of the modal
-  },
-  
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
@@ -391,11 +417,11 @@ const styles = StyleSheet.create({
     color: 'black',
   },
   buttonContainer: {
-    marginVertical: 10, // Adjust the space between buttons
+    marginVertical: 10,
   },
   bContainer: {
-    marginVertical: 10, // Adjust the space between buttons
-    marginBottom:40,
+    marginVertical: 10,
+    marginBottom: 40,
   },
 });
 
