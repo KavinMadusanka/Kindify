@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-nat
 import { useUser } from '@clerk/clerk-expo'; // Clerk for user management
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../config/FirebaseConfig'; // Your Firebase configuration
-import { CircularProgress } from 'react-native-circular-progress'; // Import circular progress component
+import { AnimatedCircularProgress } from 'react-native-circular-progress'; // Import circular progress component
 
 const SkillDevelopmentTracker = () => {
   const { user } = useUser();
@@ -17,16 +17,16 @@ const SkillDevelopmentTracker = () => {
   const [loading, setLoading] = useState(true);
   const [totalSkillPercentage, setTotalSkillPercentage] = useState(0);
 
-  // Skill mapping for each category
+  // Skill mapping for each category (all lowercase to match normalized category)
   const categorySkillsMapping = {
-    'Beach Clean': ['communication', 'teamwork'],
-    'Elderly Care': ['adaptability', 'communication'],
-    'Food Security & Distribution': ['teamwork', 'organizationalSkills'],
-    'Fundraising Events': ['communication', 'timeManagement'],
-    'Blood Donation': ['teamwork', 'adaptability'],
-    'Disaster Relief': ['teamwork', 'organizationalSkills', 'timeManagement'],
-    'Teaching & Tutoring': ['communication', 'organizationalSkills'],
-    'Animal Welfare & Shelter Support': ['adaptability', 'communication'],
+    'beach clean': ['communication', 'teamwork'],
+    'elderly care': ['adaptability', 'communication'],
+    'food security & distribution': ['teamwork', 'organizationalSkills'],
+    'fundraising events': ['communication', 'timeManagement'],
+    'blood donation': ['teamwork', 'adaptability'],
+    'disaster relief': ['teamwork', 'organizationalSkills', 'timeManagement'],
+    'teaching & tutoring': ['communication', 'organizationalSkills'],
+    'animal welfare & shelter support': ['adaptability', 'communication'],
   };
 
   // Function to fetch and process skill development data
@@ -57,15 +57,30 @@ const SkillDevelopmentTracker = () => {
         timeManagement: 0,
       };
 
-      // Calculate skill percentages based on event hours
+      // Normalize category and calculate skill percentages based on event hours
       querySnapshot.forEach((doc) => {
         const data = doc.data().eventdData;
-        const hours = data.hours;
+        
+        if (!data || !data.category) {
+          console.warn("Event data or category is missing", data);
+          return; // Skip this iteration if data or category is missing
+        }
 
-        const categories = categorySkillsMapping[data.category];
-        categories.forEach((skill) => {
-          updatedSkillData[skill] = Math.min(100, updatedSkillData[skill] + (hours * 7)); // Increment percentage based on hours
-        });
+        // Normalize the category name (convert to lowercase and trim spaces)
+        const normalizedCategory = data.category.trim().toLowerCase();
+        console.log('Normalized Category:', normalizedCategory); // Log normalized category for debugging
+
+        // Map category to its respective skills
+        const categories = categorySkillsMapping[normalizedCategory];
+        
+        if (categories) {
+          const hours = data.hours || 0;
+          categories.forEach((skill) => {
+            updatedSkillData[skill] = Math.min(100, updatedSkillData[skill] + (hours * 3.5)); // Increment percentage based on hours
+          });
+        } else {
+          console.warn("No skill mapping found for category:", normalizedCategory);
+        }
       });
 
       setSkillData(updatedSkillData);
@@ -122,20 +137,19 @@ const SkillDevelopmentTracker = () => {
         <Text style={styles.overallLabel}>Overall Skill Development Level</Text> 
 
         {/* Circular Progress Bar */}
-        <CircularProgress
-          value={totalSkillPercentage}
-          radius={100}
-          textColor="#333"
-          activeStrokeColor="#4CAF50" // Green for filled part
-          inActiveStrokeColor="#e0e0e0" // Light grey for empty part (background ring)
-          inActiveStrokeOpacity={0.5} // Transparency for background ring
-          inActiveStrokeWidth={20} // Thickness of empty ring
-          activeStrokeWidth={20} // Thickness of filled ring
-          duration={1000} // Animation duration
-        />
-        
-        {/* Percentage Text inside the Circle */}
-        <Text style={styles.circularText}>{Math.round(totalSkillPercentage)}%</Text>
+        <AnimatedCircularProgress
+            size={150} // Reduced size for the circle
+            width={25} // Increased width for a thicker stroke
+            fill={totalSkillPercentage} // Percentage to fill the circle
+            tintColor='#6A9C89' // Green for filled part
+            backgroundColor='#E9EFEC' // Light grey for empty part
+            lineCap="round" // Makes the stroke end with rounded edges
+            duration={1000} // Animation duration
+          >
+            {() => (
+              <Text style={styles.circularText}>{Math.round(totalSkillPercentage)}%</Text>
+            )}
+          </AnimatedCircularProgress>
       </View>
     </ScrollView>
   );
@@ -161,11 +175,14 @@ const styles = StyleSheet.create({
   },
   circularText: {
     position: 'absolute',
-    fontSize: 30,
+    fontSize: 24, // Decreased font size to fit inside the circle better
     fontWeight: 'bold',
     color: '#333',
-    top: 95, // Adjust positioning for the percentage text
-  },
+    textAlign: 'center',
+    top: '40%', // Center the text vertically inside the circular progress bar
+    left: '40%', // Center the text horizontally
+    //transform: [{ translateX: -50 }, { translateY: -50 }], // Offset to align in the center
+},
   overallLabel: {
     fontSize: 18,
     marginBottom: 20, // Space between label and circular progress bar
