@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, Alert } from 'react-native';
 import * as Notifications from 'expo-notifications';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../../config/FirebaseConfig';
 import { useUser } from '@clerk/clerk-expo';
+import { MaterialIcons } from '@expo/vector-icons'; // Import Icon
 
 const NotificationScreen = () => {
   const [notifications, setNotifications] = useState([]);
@@ -67,7 +68,7 @@ const NotificationScreen = () => {
     }
   };
 
-  // Function to calculate the next donation date
+  // Function to calculate the next donation date for Blood Donation category
   const calculateNextDonationDate = (dateString) => {
     const donationDate = new Date(dateString);
     const nextDonationDate = new Date(donationDate);
@@ -84,33 +85,58 @@ const NotificationScreen = () => {
           const data = change.doc.data();
           const eventEmail = data.eventdData?.emailAddress;
 
-          if (
-            data.eventdData &&
-            data.eventdData.category === 'Blood Donation' &&
-            data.eventdData.status === 'accept' &&
-            eventEmail === userEmail
-          ) {
-            const nextDonationDate = calculateNextDonationDate(data.eventdData.date);
+          // Debugging: Log the event data to check what's being received
+          console.log("Event data:", data);
 
-            const notification = {
-              id: change.doc.id,
-              category: data.eventdData.category,
-              date: data.eventdData.date,
-              nextDonationDate: nextDonationDate,
-              receivedAt: new Date().toString(),
-            };
+          if (data.eventdData && eventEmail === userEmail) {
+            let notification;
+            const eventDate = data.eventdData.date;
 
-            // Add notification to the state
-            setNotifications(prevNotifications => [notification, ...prevNotifications]);
+            // Check if the category is 'Blood Donation' and the status is 'accept'
+            if (data.eventdData.category === 'Blood Donation' && data.eventdData.status === 'accept') {
+              const nextDonationDate = calculateNextDonationDate(eventDate);
 
-            // Save the notification to AsyncStorage
-            saveNotificationToStorage(notification);
+              notification = {
+                id: change.doc.id,
+                category: data.eventdData.category,
+                date: eventDate,
+                nextDonationDate: nextDonationDate,
+                receivedAt: new Date().toString(),
+              };
 
-            // Trigger local notification
-            showLocalNotification(
-              "Event Accepted",
-              `You have been accepted for a ${data.eventdData.category} on ${data.eventdData.date}. Your next eligible donation date is ${nextDonationDate}.`
-            );
+              // Trigger local notification for Blood Donation
+              showLocalNotification(
+                "Event Accepted",
+                `You have been accepted for a ${data.eventdData.category} on ${eventDate}. Your next eligible donation date is ${nextDonationDate}.`
+              );
+
+            // Handle other categories where status is 'accept'
+            } else if (data.eventdData.status === 'accept') {
+              notification = {
+                id: change.doc.id,
+                category: data.eventdData.category,
+                date: eventDate,
+                receivedAt: new Date().toString(),
+              };
+
+              // Debugging: Log the notification for other categories
+              console.log("Non-blood donation notification:", notification);
+
+              // Trigger local notification for other categories
+              showLocalNotification(
+                "Event Accepted",
+                `You have been accepted to participate in a ${data.eventdData.category} event on ${eventDate}.`
+              );
+            }
+
+            // If a notification is created, save and display it
+            if (notification) {
+              // Add notification to the state
+              setNotifications(prevNotifications => [notification, ...prevNotifications]);
+
+              // Save the notification to AsyncStorage
+              saveNotificationToStorage(notification);
+            }
           }
         }
       });
@@ -126,10 +152,15 @@ const NotificationScreen = () => {
         keyExtractor={item => item.id}
         renderItem={({ item }) => (
           <View style={styles.notificationContainer}>
-            <Text style={styles.notificationText}>
-              You have been accepted for a {item.category} event on {item.date}. Your next eligibility donation date is {item.nextDonationDate}. You can again donate your blood after {item.nextDonationDate}.
-            </Text>
-            <Text style={styles.receivedAtText}>Received at: {item.receivedAt}</Text>
+            {/* Display notification icon */}
+            <MaterialIcons name="notifications" size={24} color="black" style={styles.icon} />
+            <View style={styles.textContainer}>
+              <Text style={styles.notificationText}>
+                You have been accepted for a {item.category} event on {item.date}.
+                {item.category === 'Blood Donation' && ` Your next eligible donation date is ${item.nextDonationDate}.`}
+              </Text>
+              <Text style={styles.receivedAtText}>Received at: {item.receivedAt}</Text>
+            </View>
           </View>
         )}
         contentContainerStyle={notifications.length === 0 && styles.emptyContainer} // Optional styling when no notifications
@@ -145,11 +176,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#E7EFEF',
   },
   notificationContainer: {
+    flexDirection: 'row',
     marginVertical: 8,
     padding: 16,
     borderRadius: 8,
     backgroundColor: '#ffffff',
     elevation: 2, // Android shadow
+  },
+  icon: {
+    marginRight: 10, // Space between icon and text
+  },
+  textContainer: {
+    flex: 1,
   },
   notificationText: {
     fontSize: 15,
