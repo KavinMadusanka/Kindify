@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
-import { db } from '../../config/FirebaseConfig'; // Ensure your Firebase config is correct
-import { collection, query, getDocs, doc, updateDoc, where, getDoc } from 'firebase/firestore'; // Add getDoc here
+import { View, Text, StyleSheet, ActivityIndicator, Button, Alert, TouchableOpacity } from 'react-native';
+import { db } from '../../config/FirebaseConfig';
+import { collection, query, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { useRoute } from '@react-navigation/native';
-
 
 const Attendance = () => {
   const route = useRoute();
@@ -13,45 +12,19 @@ const Attendance = () => {
   const [error, setError] = useState(null);
 
   const fetchPendingUsers = async () => {
-    console.log('Event ID:', id);
     try {
       const q = query(collection(db, 'JoinEvent'));
       const querySnapshot = await getDocs(q);
-      const usersEmails = [];
+      const users = [];
 
       querySnapshot.forEach((doc) => {
         const data = doc.data();
         if (data.eventdData?.status === 'pendding' && data.eventdData?.eventId === id) {
-          const email = data.eventdData?.emailAddress;
-          if (email) { // Ensure email is defined and not empty
-            usersEmails.push(email); // Store email
-          }
+          users.push({ id: doc.id, firstName: data.eventdData.emailAddress });
         }
       });
 
-      console.log('Fetched Emails:', usersEmails);
-      const uniqueEmails = [...new Set(usersEmails)]; // Remove duplicates
-
-      if (uniqueEmails.length > 0) {
-        const usersQuery = query(collection(db, 'users'), where('emailAddress', 'in', uniqueEmails));
-        const usersSnapshot = await getDocs(usersQuery);
-        const users = [];
-
-        usersSnapshot.forEach((userDoc) => {
-          const userData = userDoc.data();
-          users.push({
-            id: userDoc.id,
-            firstName: userData.firstName || 'Unknown User',
-            emailAddress: userData.emailAddress,
-          });
-        });
-
-        console.log('Fetched User Names:', users);
-        setPendingUsers(users);
-      } else {
-        console.log('No valid emails found.');
-        setPendingUsers([]); // No users to show
-      }
+      setPendingUsers(users);
     } catch (err) {
       console.error('Error fetching pending users:', err);
       setError(err);
@@ -60,46 +33,26 @@ const Attendance = () => {
     }
   };
 
-  const updateStatus = async (email, status) => {
-    console.log(`Updating status for email ${email} to ${status}`); // Debugging log
-  
+  const updateStatus = async (userId, status) => {
+    const userRef = doc(db, 'JoinEvent', userId);
     try {
-      // Query to find the document based on the user's email
-      const q = query(collection(db, 'JoinEvent'), where('eventdData.emailAddress', '==', email));
-      const querySnapshot = await getDocs(q);
-  
-      if (querySnapshot.empty) {
-        console.log('No document found for the email:', email); // Debugging log
-        Alert.alert('Error', 'User document not found');
-        return;
-      }
-  
-      // Update each document found (if multiple exist, handle accordingly)
-      querySnapshot.forEach(async (doc) => {
-        const userRef = doc.ref; // Reference to the current document
-        await updateDoc(userRef, {
-          'eventdData.status': status, // Update the status field
-        });
-        console.log(`User status updated to ${status} for email: ${email}`);
-        Alert.alert('Success', `User status updated to ${status}`);
+      await updateDoc(userRef, {
+        'eventdData.status': status,
       });
-  
-      fetchPendingUsers(); // Refresh users after update
+      Alert.alert('Success', `User status updated to ${status}`);
+      fetchPendingUsers(); // Refetch users to update the list
     } catch (err) {
       console.error('Error updating status:', err);
       Alert.alert('Error', 'Failed to update status');
     }
   };
-  
-
 
   useEffect(() => {
     if (id) {
       fetchPendingUsers();
     }
-  }, [id]); // Only run when id changes
+  }, [id]);
 
-  // Ensure we handle loading and error states before rendering user information
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -120,25 +73,22 @@ const Attendance = () => {
     <View style={styles.container}>
       <Text style={styles.title}>Attendance Confirmation</Text>
       {pendingUsers.length === 0 ? (
-        <Text>No pending users found.</Text>
+        <Text style={styles.noUsers}>No pending users found.</Text>
       ) : (
         pendingUsers.map((user) => (
-          <View key={user.id} style={styles.cardContainer}>
-            <View style={styles.userInfo}>
-              <Text style={styles.userName}>{user.firstName}</Text>
-              <Text style={styles.userEmail}>{user.emailAddress.toLowerCase()}</Text>
-            </View>
+          <View key={user.id} style={styles.userContainer}>
+            <Text style={styles.userName}>{user.firstName}</Text>
             <View style={styles.buttonContainer}>
-              <TouchableOpacity style={[styles.button, styles.confirmButton]} onPress={() => {
-                  console.log('Confirm button pressed for user ID:', user.id); // Debugging log
-                  updateStatus(user.id, 'accept'); // Update to 'accept'
-                }}>
+              <TouchableOpacity
+                style={styles.confirmButton}
+                onPress={() => updateStatus(user.id, 'accept')}
+              >
                 <Text style={styles.buttonText}>Confirm</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.button, styles.absentButton]} onPress={() => {
-                  console.log('Absent button pressed for user ID:', user.id); // Debugging log
-                  updateStatus(user.id, 'reject'); // Update to 'reject'
-                }}>
+              <TouchableOpacity
+                style={styles.absentButton}
+                onPress={() => updateStatus(user.id, 'reject')}
+              >
                 <Text style={styles.buttonText}>Absent</Text>
               </TouchableOpacity>
             </View>
@@ -167,50 +117,47 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
+    textAlign: 'center', // Center align the title
     marginBottom: 20,
-    textAlign: 'center', // Center the title
   },
-  cardContainer: {
-    padding: 15,
+  noUsers: {
+    textAlign: 'center',
+    fontSize: 16,
+  },
+  userContainer: {
     backgroundColor: '#FFFFFF',
+    padding: 15,
     borderRadius: 10,
-    marginVertical: 10,
+    marginBottom: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  userInfo: {
-    marginBottom: 10,
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3, // For Android shadow
   },
   userName: {
     fontSize: 18,
-    marginBottom: 5,
-  },
-  userEmail: {
-    fontSize: 14,
-    color: '#666',
+    marginBottom: 10,
   },
   buttonContainer: {
     flexDirection: 'row',
-    justifyContent: 'flex-end', // Align buttons to the right
-  },
-  button: {
-    borderRadius: 5,
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    marginLeft: 10,
+    justifyContent: 'flex-end', // Right-align buttons
   },
   confirmButton: {
-    backgroundColor: '#6A9C89', // Confirm button color
+    backgroundColor: '#6A9C89',
+    padding: 10,
+    borderRadius: 5,
+    marginRight: 10, // Spacing between buttons
   },
   absentButton: {
-    backgroundColor: '#FF8770', // Absent button color
+    backgroundColor: '#FF8770',
+    padding: 10,
+    borderRadius: 5,
   },
   buttonText: {
     color: '#FFFFFF',
-    fontWeight: 'bold',
+    fontSize: 16,
+    textAlign: 'center',
   },
 });
 
