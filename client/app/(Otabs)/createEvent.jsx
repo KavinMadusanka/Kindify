@@ -7,12 +7,12 @@ import { db } from '../../config/FirebaseConfig'; // Import your Firebase config
 import { collection, addDoc } from 'firebase/firestore'; // Import Firestore functions
 
 // Your icons
-const LogoIcon = require('../../assets/images/Logo.png');
-const DescriptionIcon = require('../../assets/images/Logo.png');
-const DateIcon = require('../../assets/images/Logo.png');
-const TimeIcon = require('../../assets/images/Logo.png');
-const LocationIcon = require('../../assets/images/Logo.png');
-const PurposeIcon = require('../../assets/images/Logo.png');
+const LogoIcon = require('../../assets/images/category.png');
+const DescriptionIcon = require('../../assets/images/description.png');
+const DateIcon = require('../../assets/images/calendar.png');
+const TimeIcon = require('../../assets/images/time management.png');
+const LocationIcon = require('../../assets/images/Visit.png');
+const PurposeIcon = require('../../assets/images/questions blue.png');
 
 export default function CreateEventScreen() {
     const [category, setCategory] = useState('');
@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#E6F2F0',
     paddingHorizontal: 20, // Added more horizontal padding for better spacing
-    paddingTop: 0,
+    paddingTop: 30,
   },
   inputContainer: {
     flexDirection: 'row',
@@ -250,8 +250,8 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   icon: {
-    width: 30,
-    height: 30,
+    width: 40,
+    height: 40,
     marginRight: 10,
   },
   textInput: {
@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   imageButton: {
-    backgroundColor: '#007bff',
+    backgroundColor: '#C4DAD2',
     padding: 10,
     borderRadius: 5,
     marginTop: 10,
