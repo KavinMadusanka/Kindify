@@ -145,6 +145,17 @@ const NotificationScreen = () => {
     return () => unsubscribe();
   }, [userEmail]);
 
+  // Function to format date and time separately
+  const formatReceivedDate = (receivedAt) => {
+    const date = new Date(receivedAt);
+    return date.toLocaleDateString();
+  };
+
+  const formatReceivedTime = (receivedAt) => {
+    const date = new Date(receivedAt);
+    return date.toLocaleTimeString();
+  };
+
   return (
     <View style={styles.container}>
       <FlatList
@@ -159,7 +170,8 @@ const NotificationScreen = () => {
                 You have been accepted for a {item.category} event on {item.date}.
                 {item.category === 'Blood Donation' && ` Your next eligible donation date is ${item.nextDonationDate}.`}
               </Text>
-              <Text style={styles.receivedAtText}>Received at: {item.receivedAt}</Text>
+              <Text style={styles.receivedAtText}>Received on: {formatReceivedDate(item.receivedAt)}</Text>
+              <Text style={styles.receivedAtText}>Time: {formatReceivedTime(item.receivedAt)}</Text>
             </View>
           </View>
         )}
