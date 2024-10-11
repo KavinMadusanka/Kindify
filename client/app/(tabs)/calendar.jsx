@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, Image, Modal, TouchableOpacity } from 'react-native';
 import { useUser } from '@clerk/clerk-expo'; // Clerk for user management
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { Calendar } from 'react-native-calendars'; // Import the Calendar component
@@ -10,6 +10,21 @@ const MonthlyActivityCalendar = () => {
   const [markedDates, setMarkedDates] = useState({});
   const [loading, setLoading] = useState(true); // To show a loading state
   const [eventDetails, setEventDetails] = useState([]); // To store event categories
+  const [selectedEvent, setSelectedEvent] = useState(null); // To track selected event
+  const [isModalVisible, setModalVisible] = useState(false); // To control modal visibility
+
+  // Load images for each category
+  const categoryImages = {
+    'Beach Clean': require('../../assets/images/beachcleanup.png'),
+    'Blood Donation': require('../../assets/images/blood icon.jpg'),
+    'Elderly Care': require('../../assets/images/eldery care.jpg'),
+    'Food Security & Distribution': require('../../assets/images/food icon.png'),
+    'Fundraising Events': require('../../assets/images/fundraising.png'),
+    'Disaster Relief': require('../../assets/images/disaster.png'),
+    'Teaching & Tutoring': require('../../assets/images/teaching.jpg'),
+    'Animal Welfare & Shelter Support': require('../../assets/images/animal welfare.png'),
+    // Add more categories and their respective image paths
+  };
 
   // Function to fetch and process activities
   const fetchActivities = async () => {
@@ -36,19 +51,14 @@ const MonthlyActivityCalendar = () => {
       querySnapshot.forEach((doc) => {
         const data = doc.data().eventdData; // Access the eventdData map
 
-        // Assuming 'data.date' is in a format that can be parsed by new Date()
         const eventDate = new Date(data.date); // Convert the string date to a Date object
-
-        // Adjusting the date to UTC and formatting it to YYYY-MM-DD
         const formattedDate = eventDate.toISOString().split('T')[0]; // Format date to YYYY-MM-DD
 
         // Check if the eventDate is valid
         if (!isNaN(eventDate.getTime())) {
-          // Mark the date with a special mark
+          // Store the category image for the corresponding date
           eventDates[formattedDate] = {
-            marked: true,
-            dotColor: 'blue', // Choose your preferred color
-            // Additional properties can be added
+            image: categoryImages[data.category], // Save image path based on category
           };
 
           // Store event category details
@@ -75,6 +85,21 @@ const MonthlyActivityCalendar = () => {
     fetchActivities(); // Fetch data when component loads
   }, [user]); // Refetch if user changes
 
+  // Function to handle image click
+  const handleImageClick = (date) => {
+    const event = eventDetails.find((event) => event.date === date);
+    if (event) {
+      setSelectedEvent(event);
+      setModalVisible(true); // Open modal with event details
+    }
+  };
+
+  // Close modal
+  const closeModal = () => {
+    setModalVisible(false);
+    setSelectedEvent(null);
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -86,22 +111,51 @@ const MonthlyActivityCalendar = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Monthly Activity Calendar</Text>
+      <Text style={styles.title}>My Calendar</Text>
       <Calendar
-        // Set the current date (optional)
         current={new Date().toISOString().split('T')[0]}
-        // Set marked dates
         markedDates={markedDates}
-        // Add additional calendar properties if needed
+        markingType={'custom'} // Use custom markers for images
+        dayComponent={({ date }) => {
+          const markedDate = markedDates[date.dateString];
+          return (
+            <TouchableOpacity onPress={() => handleImageClick(date.dateString)}>
+              <View style={styles.dayContainer}>
+                <Text style={styles.dateText}>{date.day}</Text>
+                {markedDate?.image && (
+                  <Image source={markedDate.image} style={styles.eventImage} />
+                )}
+              </View>
+            </TouchableOpacity>
+          );
+        }}
       />
-      <View style={styles.eventListContainer}>
-        <Text style={styles.eventListTitle}>Event Categories:</Text>
-        {eventDetails.map((event, index) => (
-          <Text key={index} style={styles.eventText}>
-            Date: {event.date}, Category: {event.category}, Hours: {event.hours}
-          </Text>
-        ))}
-      </View>
+
+      {/* Modal for event details */}
+      {selectedEvent && (
+        <Modal
+          visible={isModalVisible}
+          transparent={true}
+          animationType="slide"
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Event Details</Text>
+              <Text>Date: {selectedEvent.date}</Text>
+              <Text>Category: {selectedEvent.category}</Text>
+              <Text>Hours: {selectedEvent.hours}</Text>
+              {/* Add category image to modal */}
+              <Image
+                source={categoryImages[selectedEvent.category]}
+                style={styles.modalImage}
+              />
+              <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
+                <Text style={styles.closeButtonText}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      )}
     </View>
   );
 };
@@ -123,17 +177,53 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  eventListContainer: {
-    marginTop: 20,
+  dayContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 32,
+    height: 32,
   },
-  eventListTitle: {
-    fontSize: 18,
+  dateText: {
+    color: '#000',
+  },
+  eventImage: {
+    width: 50,
+    height: 50,
+    position: 'absolute',
+    bottom: -10,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalContent: {
+    width: 300,
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 10,
   },
-  eventText: {
+  closeButton: {
+    marginTop: 20,
+    padding: 10,
+    backgroundColor: '#004F2D',
+    borderRadius: 5,
+  },
+  closeButtonText: {
+    color: '#fff',
     fontSize: 16,
-    marginBottom: 5,
+  },
+  modalImage: {
+    width: 100,
+    height: 100,
+    marginVertical: 10,
   },
 });
 
