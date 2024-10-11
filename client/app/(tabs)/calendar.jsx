@@ -4,6 +4,7 @@ import { useUser } from '@clerk/clerk-expo'; // Clerk for user management
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { Calendar } from 'react-native-calendars'; // Import the Calendar component
 import { db } from '../../config/FirebaseConfig'; // Your Firebase configuration
+import CalendarImage from '../../assets/images/time management.png'; // Adjust path as necessary
 
 const MonthlyActivityCalendar = () => {
   const { user } = useUser(); // Fetch current user's info from Clerk
@@ -15,7 +16,7 @@ const MonthlyActivityCalendar = () => {
 
   // Load images for each category
   const categoryImages = {
-    'Beach Clean': require('../../assets/images/beachcleanup.png'),
+    'Beach Clean': require('../../assets/images/bclean.jpg'),
     'Blood Donation': require('../../assets/images/blood icon.jpg'),
     'Elderly Care': require('../../assets/images/eldery care.jpg'),
     'Food Security & Distribution': require('../../assets/images/food icon.png'),
@@ -112,6 +113,11 @@ const MonthlyActivityCalendar = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>My Calendar</Text>
+
+      {/* Add the image between the title and the calendar */}
+      <Image source={CalendarImage} style={styles.calendarImage} />
+
+
       <Calendar
         current={new Date().toISOString().split('T')[0]}
         markedDates={markedDates}
@@ -169,8 +175,14 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
+    marginBottom: 0,
+    textAlign: 'left',
+  },
+  calendarImage: {
+    width: 200, // Adjust width and height based on the image size
+    height: 200,
+    alignSelf: 'flex-end', // Center the image horizontally
+    marginBottom: 50, // Add margin between the image and calendar
   },
   loadingContainer: {
     flex: 1,
