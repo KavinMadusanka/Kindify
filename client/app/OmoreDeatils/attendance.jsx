@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
-import { db } from '../../config/FirebaseConfig';
-import { collection, query, getDocs, doc, updateDoc, where } from 'firebase/firestore';
+import { db } from '../../config/FirebaseConfig'; // Ensure your Firebase config is correct
+import { collection, query, getDocs, doc, updateDoc, where, getDoc } from 'firebase/firestore'; // Add getDoc here
 import { useRoute } from '@react-navigation/native';
+
 
 const Attendance = () => {
   const route = useRoute();
@@ -59,26 +60,46 @@ const Attendance = () => {
     }
   };
 
-  const updateStatus = async (userId, status) => {
-    const userRef = doc(db, 'JoinEvent', userId);
+  const updateStatus = async (email, status) => {
+    console.log(`Updating status for email ${email} to ${status}`); // Debugging log
+  
     try {
-      await updateDoc(userRef, {
-        'eventdData.status': status,
+      // Query to find the document based on the user's email
+      const q = query(collection(db, 'JoinEvent'), where('eventdData.emailAddress', '==', email));
+      const querySnapshot = await getDocs(q);
+  
+      if (querySnapshot.empty) {
+        console.log('No document found for the email:', email); // Debugging log
+        Alert.alert('Error', 'User document not found');
+        return;
+      }
+  
+      // Update each document found (if multiple exist, handle accordingly)
+      querySnapshot.forEach(async (doc) => {
+        const userRef = doc.ref; // Reference to the current document
+        await updateDoc(userRef, {
+          'eventdData.status': status, // Update the status field
+        });
+        console.log(`User status updated to ${status} for email: ${email}`);
+        Alert.alert('Success', `User status updated to ${status}`);
       });
-      Alert.alert('Success', `User status updated to ${status}`);
-      fetchPendingUsers();
+  
+      fetchPendingUsers(); // Refresh users after update
     } catch (err) {
       console.error('Error updating status:', err);
       Alert.alert('Error', 'Failed to update status');
     }
   };
+  
+
 
   useEffect(() => {
     if (id) {
       fetchPendingUsers();
     }
-  }, [id]);
+  }, [id]); // Only run when id changes
 
+  // Ensure we handle loading and error states before rendering user information
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -108,10 +129,16 @@ const Attendance = () => {
               <Text style={styles.userEmail}>{user.emailAddress.toLowerCase()}</Text>
             </View>
             <View style={styles.buttonContainer}>
-              <TouchableOpacity style={[styles.button, styles.confirmButton]} onPress={() => updateStatus(user.id, 'accept')}>
+              <TouchableOpacity style={[styles.button, styles.confirmButton]} onPress={() => {
+                  console.log('Confirm button pressed for user ID:', user.id); // Debugging log
+                  updateStatus(user.id, 'accept'); // Update to 'accept'
+                }}>
                 <Text style={styles.buttonText}>Confirm</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.button, styles.absentButton]} onPress={() => updateStatus(user.id, 'reject')}>
+              <TouchableOpacity style={[styles.button, styles.absentButton]} onPress={() => {
+                  console.log('Absent button pressed for user ID:', user.id); // Debugging log
+                  updateStatus(user.id, 'reject'); // Update to 'reject'
+                }}>
                 <Text style={styles.buttonText}>Absent</Text>
               </TouchableOpacity>
             </View>
